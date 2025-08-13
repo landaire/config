@@ -57,6 +57,7 @@
     delta
     claude-code
     fcp
+    helix
   ];
 
   homebrew = {
@@ -67,6 +68,10 @@
       # 'zap': uninstalls all formulae(and related files) not listed in the generated Brewfile
       cleanup = "zap";
     };
+
+    taps = [
+      "nikitabobko/tap"
+    ];
 
     casks = [
       "iina"
@@ -83,6 +88,7 @@
       "speedcrunch"
       "keycastr"
       "keepingyouawake"
+      "nikitabobko/tap/aerospace"
     ];
   };
 }
