@@ -17,6 +17,7 @@
   # List packages installed in system profile. To search by name, run:
   # $ nix-env -qaP | grep wget
   environment.systemPackages = with pkgs; [
+    git
     sendme
     nil
     alejandra
@@ -73,6 +74,10 @@
       "nikitabobko/tap"
     ];
 
+    brews = [
+      "twitch-cli"
+    ];
+
     casks = [
       "iina"
       "audacity"
@@ -88,7 +93,6 @@
       "speedcrunch"
       "keycastr"
       "keepingyouawake"
-      "nikitabobko/tap/aerospace"
     ];
   };
 }
