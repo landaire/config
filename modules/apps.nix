@@ -18,6 +18,8 @@
   # $ nix-env -qaP | grep wget
   environment.systemPackages = with pkgs; [
     git
+    fd
+    tealdeer
     sendme
     nil
     alejandra
@@ -35,7 +37,7 @@
     crabz
     diff-so-fancy
     difftastic
-    dog
+    dogdns
     fzf
     git-cliff
     helix
@@ -59,6 +61,8 @@
     claude-code
     fcp
     helix
+    trunk
+    mergiraf
   ];
 
   homebrew = {
