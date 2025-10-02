@@ -17,29 +17,39 @@
   # List packages installed in system profile. To search by name, run:
   # $ nix-env -qaP | grep wget
   environment.systemPackages = with pkgs; [
-    git
+    # General CLI tools
     fd
+    git
     tealdeer
     sendme
-    nil
-    alejandra
-    lazyjj
-    nushell
     jujutsu
-    zoxide
-    just
-    atuin
-    p7zip
+    fcp
+    ripgrep
+    crabz
     bat
     bacon
     curl
     wget
-    crabz
+    p7zip
+    kondo
+    yt-dlp
+    dogdns
+
+    # Shell stuff
+    atuin
+    fzf
+    zoxide
+    starship
+
+    # Programming tools
+    git-cliff
+    nil
+    alejandra
+    lazyjj
+    nushell
+    just
     diff-so-fancy
     difftastic
-    dogdns
-    fzf
-    git-cliff
     helix
     hexyl
     httpie
@@ -50,16 +60,11 @@
     neovim
     mise
     mdbook
-    yt-dlp
     uv
-    starship
     sccache
-    ripgrep
     protobuf
-    kondo
     delta
     claude-code
-    fcp
     helix
     trunk
     mergiraf
