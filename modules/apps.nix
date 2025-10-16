@@ -18,54 +18,58 @@
   # $ nix-env -qaP | grep wget
   environment.systemPackages = with pkgs; [
     # General CLI tools
-    fd
+    fd # find alternative
     git
-    tealdeer
-    sendme
-    jujutsu
-    fcp
+    tealdeer # tldr -- no bullshit man pages
+    sendme # peer-to-peer file transfer
+    jujutsu # VCS
+    fcp # faster `cp` command
     ripgrep
-    crabz
-    bat
-    bacon
+    crabz # file compression -- like pigz
+    bat # `cat` with line numbers
+    bacon # background code checker
     curl
     wget
-    p7zip
-    kondo
-    yt-dlp
-    dogdns
+    p7zip # 7z
+    kondo # recurisvely clean dependencies / build artifacts in a directory
+    yt-dlp # yt-dl but better?
+    dogdns # dns queries
+    zola # static site generation
+    mise # task runner
+    procs # better `ps`
+    sd # better `sed`
+    skim # fzf-ish
+    gh # github cli
+    hexyl # xxd alternative
 
     # Shell stuff
-    atuin
-    fzf
-    zoxide
-    starship
+    atuin # shell history
+    fzf # fuzzy finder
+    zoxide # better `cd`
+    starship # better prompt
+    asciinema # shell recording
 
     # Programming tools
-    git-cliff
-    nil
+    git-cliff # git changelog generator
+    nil # nix autocomplete
     alejandra
     lazyjj
-    nushell
-    just
-    diff-so-fancy
-    difftastic
-    helix
-    hexyl
-    httpie
+    nushell # shell
+    just # task runner
+    difftastic # also better diff view
+    httpie # curl-ish
     htop
-    bottom
-    hyperfine
-    jaq
+    bottom # like htop
+    hyperfine # benchmarking
+    jaq # json query
     neovim
-    mise
-    mdbook
-    uv
-    sccache
+    mise # task runner
+    mdbook # markdown book
+    uv # python dependency management
+    sccache # build caching
     protobuf
-    delta
+    delta # diff viewer
     claude-code
-    helix
     trunk
     mergiraf
   ];
@@ -88,20 +92,20 @@
     ];
 
     casks = [
-      "iina"
+      "iina" # kinda like VLC  but better
       "audacity"
-      "chatterino"
+      "chatterino" # twitch chat
       "DevUtils"
       "gcloud-cli"
-      "raycast"
-      "handbrake-app"
-      "hiddenbar"
-      "macfuse"
-      "wezterm"
-      "zed"
-      "speedcrunch"
-      "keycastr"
-      "keepingyouawake"
+      "raycast" # much, much better spotlight
+      "jordanbaird-ice" # like Bartender, but not junk
+      "handbrake-app" # video conversion
+      "macfuse" # FUSE filesystems
+      "wezterm" # good terminal app
+      "zed" # good text editor
+      "speedcrunch" # calculator
+      "keycastr" # display keystrokes on screen
+      "keepingyouawake" # keep the mac from going to sleep
     ];
   };
 }
