@@ -110,6 +110,7 @@
       "keepingyouawake" # keep the mac from going to sleep
       "dotnet"
       "spotify"
+      "firefox"
     ];
   };
 }
