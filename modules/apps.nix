@@ -41,6 +41,8 @@
     skim # fzf-ish
     gh # github cli
     hexyl # xxd alternative
+    gdb
+    eza
 
     # Shell stuff
     atuin # shell history
@@ -106,6 +108,8 @@
       "speedcrunch" # calculator
       "keycastr" # display keystrokes on screen
       "keepingyouawake" # keep the mac from going to sleep
+      "dotnet"
+      "spotify"
     ];
   };
 }

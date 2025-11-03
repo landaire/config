@@ -11,6 +11,7 @@
       dock = {
         autohide = true;
         show-recents = false;
+        orientation = "left";
       };
 
       finder = {
