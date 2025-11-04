@@ -123,6 +123,7 @@
       "signal"
       "telegram"
       "010-editor"
+      "monodraw"
     ];
 
     masApps = {

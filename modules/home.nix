@@ -20,6 +20,7 @@
   xdg.configFile."rustfmt/rustfmt.toml".source = ../dotfiles/rustfmt/rustfmt.toml;
 
   home.file.".zshrc".source = ../dotfiles/.zshrc;
+  home.file.".zprofile".source = ../dotfiles/.zprofile;
   home.file.".profile".source = ../dotfiles/.profile;
 
   programs.nushell = {
