@@ -50,6 +50,7 @@
     zoxide # better `cd`
     starship # better prompt
     asciinema # shell recording
+    atuin # history
 
     # Programming tools
     git-cliff # git changelog generator
@@ -121,12 +122,14 @@
       "discord"
       "signal"
       "telegram"
+      "010-editor"
     ];
 
     masApps = {
       "WhatsApp" = 310633997;
       "Peek" = 1554235898;
       "Transmit" = 1436522307;
+      "Windows" = 1295203466;
     };
   };
 }

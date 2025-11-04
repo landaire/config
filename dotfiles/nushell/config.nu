@@ -867,6 +867,12 @@ $env.config = {
 
 # Sourcing plugins
 
-use ~/.cache/starship/init.nu
-source ~/.local/share/atuin/init.nu
-source ~/.zoxide.nu
+^ssh-agent -c
+    | lines
+    | first 2
+    | parse "setenv {name} {value};"
+    | transpose -r
+    | into record
+    | load-env
+
+^ssh-add $'($env.HOME)/.ssh/hetzner' out> /dev/null err> /dev/null

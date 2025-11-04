@@ -202,9 +202,13 @@ function tmux() {
   /usr/bin/env SSH_AUTH_SOCK=$SOCK_SYMLINK tmux new -A -s "$SESSION_NAME"
 }
 
+include () {
+    [[ -f "$1" ]] && source "$1"
+}
+
 # export NVM_DIR="$HOME/.nvm"
 # [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm
-source ~/.credentials
+include ~/.credentials
 
 #source /Users/hvx/Library/Preferences/org.dystroy.broot/launcher/bash/br
 
@@ -216,9 +220,12 @@ eval "$(starship init zsh)"
 eval "$(zoxide init zsh)"
 export PATH="/opt/homebrew/opt/llvm/bin:$PATH"
 
-source "$(brew --prefix)/share/google-cloud-sdk/path.zsh.inc"
-source "$(brew --prefix)/share/google-cloud-sdk/completion.zsh.inc"
+if (( $+commands[brew] )); then
+  include "$(brew --prefix)/share/google-cloud-sdk/path.zsh.inc"
+  include "$(brew --prefix)/share/google-cloud-sdk/completion.zsh.inc"
+fi
 
+include ~/.cargo/env
 
 eval "$(atuin init zsh)"
 export PATH="$PATH:/Applications/010 Editor.app/Contents/CmdLine" #ADDED BY 010 EDITOR

@@ -52,7 +52,6 @@ fi
 
 #[[ -s "$HOME/.rvm/scripts/rvm" ]] && source "$HOME/.rvm/scripts/rvm" # Load RVM into a shell session *as a function*
 #export PATH="$(pyenv root)/shims:$PATH"
-. "$HOME/.cargo/env"
 export PATH="$PATH:/Applications/010 Editor.app/Contents/CmdLine" #ADDED BY 010 EDITOR
 
 export PATH="$PATH:/Applications/screenpipe.app/Contents/MacOS"
