@@ -113,6 +113,10 @@
       "firefox"
       "tailscale"
       "cleanshot"
+      "proton-mail"
+      "proton-pass"
+      "proton-drive"
+      "protonvpn"
     ];
   };
 }
