@@ -1,0 +1,28 @@
+#lazyjj.diff-format = "git"
+
+[user]
+name = "Lander Brandt"
+email = "landerbrandt@gmail.com"
+
+[ui]
+editor = "nvim"
+diff-formatter = ["difft", "--color=always", "$left", "$right"]
+#diff-editor = "diffedit3"
+
+[colors]
+# do not underline lines in hunks (since 0.19)
+#"diff removed token" = { underline = false }
+#"diff added token" = { underline = false }
+
+[signing]
+behavior = "own"
+backend = "ssh"
+key = "~/.ssh/id_ed25519"
+
+[git]
+sign-on-push = true
+
+[fix.tools.rustfmt]
+enabled = false
+command = ["rustfmt", "+nightly", "--emit", "stdout"]
+patterns = ["glob:'**/*.rs'"]

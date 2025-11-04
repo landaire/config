@@ -117,6 +117,16 @@
       "proton-pass"
       "proton-drive"
       "protonvpn"
+      "obsidian"
+      "discord"
+      "signal"
+      "telegram"
     ];
+
+    masApps = {
+      "WhatsApp" = 310633997;
+      "Peek" = 1554235898;
+      "Transmit" = 1436522307;
+    };
   };
 }

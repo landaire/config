@@ -1,5 +1,5 @@
 {
-  description = "Example nix-darwin system flake";
+  description = "Darwin config";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
@@ -10,12 +10,16 @@
 
     nix-darwin.url = "github:nix-darwin/nix-darwin/master";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
+
+    home-manager.url = "github:nix-community/home-manager";
+    home-manager.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs = inputs @ {
     self,
     nix-darwin,
     nixpkgs,
+    home-manager,
   }: let
     username = "lander";
     useremail = "landaire@proton.me";
@@ -37,6 +41,15 @@
         ./modules/host-users.nix
         ./modules/system.nix
         ./modules/apps.nix
+        home-manager.darwinModules.home-manager
+        {
+          home-manager.useGlobalPkgs = true;
+          home-manager.useUserPackages = true;
+          home-manager.users.lander = import ./modules/home.nix;
+
+          # Optionally, use home-manager.extraSpecialArgs to pass
+          # arguments to home.nix
+        }
       ];
     };
   };

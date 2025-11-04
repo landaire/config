@@ -1,0 +1,70 @@
+// Zed settings
+//
+// For information on how to configure Zed, see the Zed
+// documentation: https://zed.dev/docs/configuring-zed
+//
+// To see all of Zed's default settings without changing your
+// custom settings, run the `open default settings` command
+// from the command palette or from `Zed` application menu.
+{
+  // "theme": "Catppuccin Macchiato",
+  "theme": "Ayu Dark",
+  "vim_mode": true,
+  "ui_font_size": 12,
+  "buffer_font_size": 12,
+  // "ui_font_family": "TX-02",
+  "buffer_font_family": "TX-02",
+  "inlay_hints": {
+    "enabled": true
+  },
+  "show_edit_predictions": false,
+  "minimap": {
+    "show": "always"
+  },
+  "diagnostics": {
+    "inline": {
+      "enabled": true,
+      "max_severity": null, // same values as the `diagnostics_max_severity` from the editor settings
+    }
+  },
+  "format_on_save": "language_server",
+  "lsp": {
+    "nil": { // or "nixd":
+      "initialization_options": {
+        "formatting": {
+          "command": [
+            "alejandra",
+            "--quiet",
+            "--"
+          ] // or ["nixfmt"]
+        }
+      }
+    },
+    "rust-analyzer": {
+      "initialization_options": {
+        "check": {
+          "command": "clippy"
+        },
+        "cargo": {
+          "features": "all"
+        },
+        "rust": {
+          "analyzerTargetDir": true
+        },
+        "rustfmt": {
+          "extraArgs": ["+nightly"]
+        }
+        // "inlayHints": {
+        //   "maxLength": null,
+        //   "lifetimeElisionHints": {
+        //     "enable": "skip_trivial",
+        //     "useParameterNames": true
+        //   },
+        //   "closureReturnTypeHints": {
+        //     "enable": "always"
+        //   }
+        // }
+      }
+    }
+  }
+}
