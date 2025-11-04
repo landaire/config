@@ -35,6 +35,7 @@
     '';
     settings = {
       show_banner = false;
+      edit_mode = "vi";
     };
   };
 
@@ -60,7 +61,7 @@
       };
       time = {
         disabled = false;
-        format = "[ $time ]($style) ";
+        format = "[\\[ $time \\]]($style) ";
       };
       gcloud = {
         disabled = true;
