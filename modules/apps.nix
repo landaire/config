@@ -43,6 +43,8 @@
     hexyl # xxd alternative
     gdb
     eza
+    ffmpeg
+    imagemagick
 
     # Shell stuff
     atuin # shell history
@@ -75,6 +77,7 @@
     claude-code
     trunk
     mergiraf
+    rustup
   ];
 
   homebrew = {
