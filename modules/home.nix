@@ -37,6 +37,14 @@
     settings = {
       show_banner = false;
       edit_mode = "vi";
+      filesize = {
+        unit = "binary";
+      };
+      cursor_shape = {
+        emacs = "blink_line";
+        vi_insert = "blink_line";
+        vi_normal = "blink_block";
+      };
     };
   };
 
