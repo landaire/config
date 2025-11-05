@@ -19,7 +19,7 @@ config.window_decorations = 'RESIZE|INTEGRATED_BUTTONS'
 config.window_frame = {
   -- Berkeley Mono for me again, though an idea could be to try a
   -- serif font here instead of monospace for a nicer look?
-  font = wezterm.font({ family = 'TX-02', weight = 'Bold' }),
+  font = wezterm.font({ family = 'Berkeley Mono', weight = 'Bold' }),
   font_size = 11,
 }
 
