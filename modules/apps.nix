@@ -45,6 +45,7 @@
     eza
     ffmpeg
     imagemagick
+    python3
 
     # Shell stuff
     atuin # shell history
@@ -112,10 +113,10 @@
       "speedcrunch" # calculator
       "keycastr" # display keystrokes on screen
       "keepingyouawake" # keep the mac from going to sleep
-      "dotnet"
+      "dotnet-sdk"
       "spotify"
       "firefox"
-      "tailscale"
+      "tailscale-app"
       "cleanshot"
       "proton-mail"
       "proton-pass"
@@ -127,6 +128,7 @@
       "telegram"
       "010-editor"
       "monodraw"
+      "claude"
     ];
 
     masApps = {

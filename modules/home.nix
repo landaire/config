@@ -11,8 +11,7 @@
 
   xdg.enable = true;
 
-  home.packages = [
-  ];
+  home.packages = [];
 
   xdg.configFile."nvim/init.vim".source = ../dotfiles/nvim/init.vim;
   xdg.configFile."jj/config.toml".source = ../dotfiles/jj/config.toml;
@@ -104,6 +103,11 @@
         };
       };
       format_on_save = "on";
+      languages = {
+        "Nix" = {
+          "language_servers" = ["!nixd" "nil"];
+        };
+      };
       lsp = {
         nil = {
           initialization_options = {
