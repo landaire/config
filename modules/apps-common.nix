@@ -83,6 +83,8 @@
       "jordanbaird-ice"
       "010-editor"
       "monodraw"
+      "keepingyouawake"
+      "speedcrunch"
     ];
   };
 }
