@@ -1,0 +1,22 @@
+# Nix Darwin rebuild tasks
+
+[tasks."rebuild:caladan"]
+description = "Rebuild nix-darwin configuration for caladan"
+run = "nix run 'nix-darwin/master#darwin-rebuild' -- switch --flake .#caladan"
+
+[tasks."rebuild:salusa"]
+description = "Rebuild nix-darwin configuration for salusa"
+run = "nix run 'nix-darwin/master#darwin-rebuild' -- switch --flake .#salusa"
+
+[tasks."rebuild:work"]
+description = "Rebuild nix-darwin configuration for work machine (landerb-mac2)"
+run = "nix run 'nix-darwin/master#darwin-rebuild' -- switch --flake .#landerb-mac2"
+
+[tasks.rebuild]
+description = "List available rebuild targets"
+run = """
+echo "Available rebuild targets:"
+echo "  mise run rebuild:caladan  - Rebuild for caladan"
+echo "  mise run rebuild:salusa   - Rebuild for salusa"
+echo "  mise run rebuild:work     - Rebuild for work machine"
+"""
