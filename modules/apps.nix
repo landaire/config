@@ -46,6 +46,7 @@
     ffmpeg
     imagemagick
     python3
+    rage # file encryption
 
     # Shell stuff
     atuin # shell history
@@ -96,6 +97,11 @@
 
     brews = [
       "twitch-cli"
+      "coreutils"
+      "pkg-config"
+      "dylibbundler"
+      "ninja"
+      "cmake"
     ];
 
     casks = [
