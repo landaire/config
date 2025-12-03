@@ -1,147 +1,40 @@
 {
   pkgs,
-  username,
+  lib,
+  config,
+  hostname,
   ...
-}: {
+}: let
+  hostProfiles = {
+    # Personal hosts
+    salusa = "personal";
+    caladan = "personal";
+    landerb-mac2 = "work";
+  };
+
+  # Get the profile for current host, default to "personal"
+  currentProfile = hostProfiles.${hostname} or "personal";
+
+  # Helper to merge module lists
+  mkModules = profiles:
+    [./apps-common.nix]
+    ++ lib.optionals (builtins.elem "personal" profiles) [./apps-personal.nix]
+    ++ lib.optionals (builtins.elem "work" profiles) [./apps-work.nix];
+in {
   ##########################################################################
   #
-  #  Install all apps and packages here.
+  #  Host-specific application configuration
   #
-  # TODO Fell free to modify this file to fit your needs.
+  #  This module orchestrates loading of common and host-specific apps.
+  #  - apps-common.nix: Programs installed on all hosts
+  #  - apps-personal.nix: Additional programs for personal machines
+  #  - apps-work.nix: Additional programs for work machines
   #
   ##########################################################################
 
   # Allow unfree packages
   nixpkgs.config.allowUnfree = true;
 
-  # List packages installed in system profile. To search by name, run:
-  # $ nix-env -qaP | grep wget
-  environment.systemPackages = with pkgs; [
-    # General CLI tools
-    fd # find alternative
-    git
-    tealdeer # tldr -- no bullshit man pages
-    sendme # peer-to-peer file transfer
-    jujutsu # VCS
-    fcp # faster `cp` command
-    ripgrep
-    crabz # file compression -- like pigz
-    bat # `cat` with line numbers
-    bacon # background code checker
-    curl
-    wget
-    p7zip # 7z
-    kondo # recurisvely clean dependencies / build artifacts in a directory
-    yt-dlp # yt-dl but better?
-    dogdns # dns queries
-    zola # static site generation
-    mise # task runner
-    procs # better `ps`
-    sd # better `sed`
-    skim # fzf-ish
-    gh # github cli
-    hexyl # xxd alternative
-    gdb
-    eza
-    ffmpeg
-    imagemagick
-    python3
-    rage # file encryption
-
-    # Shell stuff
-    atuin # shell history
-    fzf # fuzzy finder
-    zoxide # better `cd`
-    starship # better prompt
-    asciinema # shell recording
-    atuin # history
-
-    # Programming tools
-    git-cliff # git changelog generator
-    nil # nix autocomplete
-    alejandra
-    lazyjj
-    nushell # shell
-    just # task runner
-    difftastic # also better diff view
-    httpie # curl-ish
-    htop
-    bottom # like htop
-    hyperfine # benchmarking
-    jaq # json query
-    neovim
-    mise # task runner
-    mdbook # markdown book
-    uv # python dependency management
-    sccache # build caching
-    protobuf
-    delta # diff viewer
-    claude-code
-    trunk
-    mergiraf
-    rustup
-  ];
-
-  homebrew = {
-    enable = true;
-    onActivation = {
-      autoUpdate = true; # Fetch the newest stable branch of Homebrew's git repo
-      upgrade = true; # Upgrade outdated casks, formulae, and App Store apps
-      # 'zap': uninstalls all formulae(and related files) not listed in the generated Brewfile
-      cleanup = "zap";
-    };
-
-    taps = [
-      "nikitabobko/tap"
-    ];
-
-    brews = [
-      "twitch-cli"
-      "coreutils"
-      "pkg-config"
-      "dylibbundler"
-      "ninja"
-      "cmake"
-    ];
-
-    casks = [
-      "iina" # kinda like VLC  but better
-      "audacity"
-      "chatterino" # twitch chat
-      "DevUtils"
-      "gcloud-cli"
-      "raycast" # much, much better spotlight
-      "jordanbaird-ice" # like Bartender, but not junk
-      "handbrake-app" # video conversion
-      "macfuse" # FUSE filesystems
-      "wezterm" # good terminal app
-      "zed" # good text editor
-      "speedcrunch" # calculator
-      "keycastr" # display keystrokes on screen
-      "keepingyouawake" # keep the mac from going to sleep
-      "dotnet-sdk"
-      "spotify"
-      "firefox"
-      "tailscale-app"
-      "cleanshot"
-      "proton-mail"
-      "proton-pass"
-      "proton-drive"
-      "protonvpn"
-      "obsidian"
-      "discord"
-      "signal"
-      "telegram"
-      "010-editor"
-      "monodraw"
-      "claude"
-    ];
-
-    masApps = {
-      "WhatsApp" = 310633997;
-      "Peek" = 1554235898;
-      "Transmit" = 1436522307;
-      "Windows" = 1295203466;
-    };
-  };
+  # Import the appropriate modules based on host profile
+  imports = mkModules [currentProfile];
 }
