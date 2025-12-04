@@ -13,6 +13,8 @@
 
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
+
+    sops-nix.url = "github:Mic92/sops-nix";
   };
 
   # flake.nix (outputs fragment)
@@ -21,6 +23,7 @@
     nix-darwin,
     nixpkgs,
     home-manager,
+    sops-nix,
     ...
   }: let
     system = "aarch64-darwin";
@@ -58,18 +61,20 @@
       hostModules = [
         ./configuration.nix
         ./modules/host-users.nix
-        ./modules/system.nix
+        ./modules/darwin-configuration.nix
         ./modules/apps.nix
+        ./modules/fonts.nix
         home-manager.darwinModules.home-manager
         {
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
-          home-manager.backupFileExtension = ".bak";
+          home-manager.backupFileExtension = "bak";
           # Use the same home config for all hosts
           home-manager.users.${username} = import ./modules/home.nix;
           # (Optionally: home-manager.extraSpecialArgs = { ... };)
         }
         {networking.hostName = hostname;}
+        sops-nix.darwinModules.sops
       ];
     in
       nix-darwin.lib.darwinSystem {

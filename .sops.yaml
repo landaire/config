@@ -1,0 +1,12 @@
+keys:
+  - &caladan age1w54ew7tduvyj6tqk9zak7myz0l968darc4ruv0lxe8quswf83c0sg77j52
+creation_rules:
+  - path_regex: secrets/fonts/[^/]+\.(yaml|json|env|ini)$
+    key_groups:
+      - age:
+          - *caladan
+  # catch-all fallback
+  - path_regex: .*
+    key_groups:
+      - age:
+          - *caladan
