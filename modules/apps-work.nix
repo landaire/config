@@ -13,8 +13,6 @@
     ];
 
     casks = [
-      "keepingyouawake"
-      "speedcrunch"
     ];
 
     masApps = {

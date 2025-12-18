@@ -25,7 +25,6 @@
     imagemagick
     python3
     rage
-    fcp
     crabz
 
     # Shell stuff

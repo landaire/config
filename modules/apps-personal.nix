@@ -35,9 +35,7 @@
       "gcloud-cli"
       "handbrake-app"
       "macfuse"
-      "speedcrunch"
       "keycastr"
-      "keepingyouawake"
       "dotnet-sdk"
       "spotify"
       "cleanshot"
@@ -50,6 +48,7 @@
       "signal"
       "telegram"
       "claude"
+      "nikitabobko/tap/aerospace"
     ];
 
     # Mac App Store apps for personal use
