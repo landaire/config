@@ -3,6 +3,7 @@
   config,
   pkgs,
   lib,
+  username,
   ...
 }: {
   nix = {
@@ -16,6 +17,11 @@
       options = lib.mkDefault "--delete-older-than 7d";
     };
   };
+
+  # Global sops configuration
+  sops.age.keyFile = "/Users/${username}/.config/sops/age/keys.txt";
+  sops.age.generateKey = false;
+  sops.age.sshKeyPaths = [];  # Don't look for SSH keys
 
   # Enable alternative shell support in nix-darwin.
   # programs.fish.enable = true;

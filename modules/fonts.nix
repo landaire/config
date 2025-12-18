@@ -6,38 +6,45 @@
   ...
 }: let
   # List all .otf font files (these are sops-encrypted)
-  fontFiles = builtins.filter 
-    (f: lib.hasSuffix ".otf" f) 
+  fontFiles =
+    builtins.filter
+    (f: lib.hasSuffix ".otf" f)
     (builtins.attrNames (builtins.readDir ../secrets/fonts/BerkeleyMono));
-  
+
   # Generate sops secrets for each font
   fontSecrets = builtins.listToAttrs (map (fontFile: {
-    name = "fonts/${lib.removeSuffix ".otf" fontFile}";
-    value = {
-      sopsFile = ../secrets/fonts/BerkeleyMono/${fontFile};
-      format = "binary";
-      path = "/run/secrets/fonts/${fontFile}";
-      owner = username;
-    };
-  }) fontFiles);
+      name = "fonts/BerkeleyMono/${fontFile}";
+      value = {
+        sopsFile = ../secrets/fonts/BerkeleyMono/${fontFile};
+        format = "binary";
+      };
+    })
+    fontFiles);
 in {
   # Define all font secrets with user ownership
   sops.secrets = fontSecrets;
 
-  # Use home-manager activation to install fonts to user directory
-  home-manager.users.${username} = { config, ... }: {
-    home.activation.installFonts = lib.hm.dag.entryAfter ["writeBoundary"] ''
-      echo "Installing sops-managed fonts to user directory..."
-      FONT_DIR="$HOME/Library/Fonts/Berkeley Mono"
-      mkdir -p "$FONT_DIR"
+  # System activation script to install fonts after sops decryption
+  system.activationScripts.postActivation.text = ''
+    echo "Installing sops-managed fonts to user directory..."
 
-      if [ -d /run/secrets/fonts ]; then
-        for font in /run/secrets/fonts/*.otf; do
-          if [ -f "$font" ]; then
-            cp -f "$font" "$FONT_DIR/" && echo "Installed $(basename $font) to user fonts"
-          fi
-        done
-      fi
-    '';
-  };
+    USER_HOME="/Users/${username}"
+    FONT_DIR="$USER_HOME/Library/Fonts"
+    SECRETS_FONTS_DIR="/run/secrets/fonts"
+
+    if [ -d $SECRETS_FONTS_DIR ]; then
+      echo "Found decrypted fonts, installing..."
+
+      for font_path in "$SECRETS_FONTS_DIR"/*; do
+        font_name=$(basename "$font_path")
+        # Copy as root (we have permission), then change ownership
+        cp -r "$font_path" "$FONT_DIR/$font_name"
+        chown -R ${username}:staff "$FONT_DIR/$font_name"
+      done
+
+      echo "Font installation complete"
+    else
+      echo "Warning: /run/secrets/fonts not found yet"
+    fi
+  '';
 }
