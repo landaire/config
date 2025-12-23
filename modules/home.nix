@@ -32,6 +32,7 @@
     launchd.enable = true;
     settings = {
       default-root-container-layout = "accordion";
+      default-root-container-orientation = "vertical";
       gaps = {
         outer.left = 8;
         outer.bottom = 8;
