@@ -3,6 +3,9 @@
   pkgs,
   lib,
   username,
+  isPersonal,
+  inputs,
+  system,
   ...
 }: {
   # Home Manager needs a bit of information about you and the
@@ -12,7 +15,9 @@
 
   xdg.enable = true;
 
-  home.packages = [];
+  home.packages =
+    lib.optionals isPersonal [
+    ];
 
   xdg.configFile."nvim/init.vim".source = ../dotfiles/nvim/init.vim;
   xdg.configFile."jj/config.toml".source = ../dotfiles/jj/config.toml;
@@ -28,7 +33,7 @@
   '';
 
   programs.aerospace = {
-    enable = true;
+    enable = false;
     launchd.enable = true;
     settings = {
       default-root-container-layout = "accordion";

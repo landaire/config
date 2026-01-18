@@ -27,6 +27,14 @@
     ...
   }: let
     system = "aarch64-darwin";
+    lib = nixpkgs.lib;
+
+    # Host profiles for conditional module loading
+    hostProfiles = {
+      salusa = "personal";
+      caladan = "personal";
+      landerb-mac2 = "work";
+    };
 
     # Host-specific configuration
     hostConfigs = {
@@ -56,6 +64,8 @@
         };
       username = hostConfig.username;
       useremail = hostConfig.useremail;
+      hostProfile = hostProfiles.${hostname} or "personal";
+      isPersonal = hostProfile == "personal";
 
       # Host-specific modules
       hostModules = [
@@ -71,7 +81,10 @@
           home-manager.backupFileExtension = "bak";
           # Use the same home config for all hosts
           home-manager.users.${username} = import ./modules/home.nix;
-          # (Optionally: home-manager.extraSpecialArgs = { ... };)
+          home-manager.sharedModules =
+            lib.optionals isPersonal [
+            ];
+          home-manager.extraSpecialArgs = {inherit inputs isPersonal system;};
         }
         {networking.hostName = hostname;}
         sops-nix.darwinModules.sops
@@ -80,7 +93,7 @@
       nix-darwin.lib.darwinSystem {
         inherit system;
         # Pass through anything you want available inside modules
-        specialArgs = inputs // {inherit username useremail hostname;};
+        specialArgs = inputs // {inherit username useremail hostname hostProfile isPersonal;};
         modules = hostModules;
       };
 

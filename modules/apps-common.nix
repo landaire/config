@@ -12,7 +12,7 @@
     wget
     p7zip
     yt-dlp
-    dogdns
+    doggo
     mise
     procs
     sd
@@ -84,6 +84,7 @@
       "monodraw"
       "keepingyouawake"
       "speedcrunch"
+      "imhex"
     ];
   };
 }

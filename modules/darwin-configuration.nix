@@ -1,8 +1,4 @@
-{
-  pkgs,
-  username,
-  ...
-}:
+{pkgs, ...}:
 # Mac system config
 {
   security.pam.services.sudo_local.touchIdAuth = true;

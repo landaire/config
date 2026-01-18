@@ -2,19 +2,9 @@
   pkgs,
   lib,
   config,
-  hostname,
+  hostProfile,
   ...
 }: let
-  hostProfiles = {
-    # Personal hosts
-    salusa = "personal";
-    caladan = "personal";
-    landerb-mac2 = "work";
-  };
-
-  # Get the profile for current host, default to "personal"
-  currentProfile = hostProfiles.${hostname} or "personal";
-
   # Helper to merge module lists
   mkModules = profiles:
     [./apps-common.nix]
@@ -36,5 +26,5 @@ in {
   nixpkgs.config.allowUnfree = true;
 
   # Import the appropriate modules based on host profile
-  imports = mkModules [currentProfile];
+  imports = mkModules [hostProfile];
 }
