@@ -250,7 +250,7 @@
         diagnostics = false;
         metrics = false;
       };
-      theme = "Ayu Dark";
+      theme = "XY-Zed"; #"Ayu Dark";
       ui_font_size = 12;
       buffer_font_size = 12;
       vim_mode = true;

@@ -51,6 +51,7 @@
       "nikitabobko/tap/aerospace"
       "transmit"
       "glide"
+      "bitwarden"
     ];
 
     # Mac App Store apps for personal use
