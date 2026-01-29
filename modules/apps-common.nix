@@ -19,7 +19,7 @@
     skim
     gh
     hexyl
-    gdb
+    #gdb
     eza
     ffmpeg
     imagemagick
