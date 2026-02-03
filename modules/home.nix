@@ -9,14 +9,14 @@
   ...
 }: let
   spoonInstall = pkgs.fetchzip {
-    url = "https://github.com/Hammerspoon/Spoons/raw/master/Spoons/SpoonInstall.spoon.zip";
-    sha256 = ""; # nix will tell you the hash on first build
+    url = "https://github.com/Hammerspoon/Spoons/raw/e5b871250346c3fe93bac0d431fc75f6f0e2f92a/Spoons/SpoonInstall.spoon.zip";
+    sha256 = "sha256-3f0d4znNuwZPyqKHbZZDlZ3gsuaiobhHPsefGIcpCSE=";
   };
 
   paperWM = pkgs.fetchgit {
     url = "https://github.com/mogenson/PaperWM.spoon";
-    rev = "release";
-    sha256 = ""; # nix will tell you
+    rev = "41c796a7edd78575aa71b77295672aa0a4a2c3ea";
+    sha256 = "sha256-u6ZmrCbEUzkQZyGv61DiErdiXR7IPn7cHyuDa9qYzGc="; # nix will tell you
   };
 in {
   # Home Manager needs a bit of information about you and the
@@ -33,12 +33,12 @@ in {
   # Place Spoons directly (skipping SpoonInstall's runtime fetching)
   home.file.".hammerspoon/Spoons/SpoonInstall.spoon".source = spoonInstall;
   home.file.".hammerspoon/Spoons/PaperWM.spoon".source = paperWM;
+  home.file.".hammerspoon/init.lua".source = ../dotfiles/hammerspoon/init.lua;
 
   xdg.configFile."nvim/init.vim".source = ../dotfiles/nvim/init.vim;
   xdg.configFile."jj/config.toml".source = ../dotfiles/jj/config.toml;
   xdg.configFile."wezterm/wezterm.lua".source = ../dotfiles/wezterm/wezterm.lua;
   xdg.configFile."rustfmt/rustfmt.toml".source = ../dotfiles/rustfmt/rustfmt.toml;
-  xdg.configFile."hammerspoon/init.lua".source = ../dotfiles/hammerspoon/init.lua;
 
   home.file.".zshrc".source = ../dotfiles/.zshrc;
   home.file.".zprofile".source = ../dotfiles/.zprofile;
