@@ -85,6 +85,7 @@
       "keepingyouawake"
       "speedcrunch"
       "imhex"
+      "hammerspoon"
     ];
   };
 }
