@@ -2,15 +2,15 @@
 
 [tasks."rebuild:caladan"]
 description = "Rebuild nix-darwin configuration for caladan"
-run = "sudo nix run 'nix-darwin/master#darwin-rebuild' -- switch --flake .#caladan"
+run = "sudo nix run 'nix-darwin/master#darwin-rebuild' -- switch --flake 'path:.#caladan'"
 
 [tasks."rebuild:salusa"]
 description = "Rebuild nix-darwin configuration for salusa"
-run = "sudo nix run 'nix-darwin/master#darwin-rebuild' -- switch --flake .#salusa"
+run = "sudo nix run 'nix-darwin/master#darwin-rebuild' -- switch --flake 'path:.#salusa'"
 
 [tasks."rebuild:work"]
 description = "Rebuild nix-darwin configuration for work machine (landerb-mac2)"
-run = "sudo nix run 'nix-darwin/master#darwin-rebuild' -- switch --flake .#landerb-mac2"
+run = "sudo nix run 'nix-darwin/master#darwin-rebuild' -- switch --flake 'path:.#landerb-mac2'"
 
 [tasks.rebuild]
 description = "List available rebuild targets"
