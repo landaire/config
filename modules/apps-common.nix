@@ -11,7 +11,7 @@
     curl
     wget
     p7zip
-    yt-dlp
+    #yt-dlp
     doggo
     mise
     procs

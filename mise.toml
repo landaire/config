@@ -8,9 +8,14 @@ run = "sudo nix run 'nix-darwin/master#darwin-rebuild' -- switch --flake 'path:.
 description = "Rebuild nix-darwin configuration for salusa"
 run = "sudo nix run 'nix-darwin/master#darwin-rebuild' -- switch --flake 'path:.#salusa'"
 
+[tasks."rebuild:ix"]
+description = "Rebuild nix-darwin configuration for ix"
+run = "sudo nix run 'nix-darwin/master#darwin-rebuild' -- switch --flake .#ix"
+
 [tasks."rebuild:work"]
 description = "Rebuild nix-darwin configuration for work machine (landerb-mac2)"
 run = "sudo nix run 'nix-darwin/master#darwin-rebuild' -- switch --flake 'path:.#landerb-mac2'"
+
 
 [tasks.rebuild]
 description = "List available rebuild targets"

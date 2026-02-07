@@ -14,7 +14,7 @@
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
-    sops-nix.url = "github:Mic92/sops-nix";
+    # sops-nix.url = "github:Mic92/sops-nix";
   };
 
   # flake.nix (outputs fragment)
@@ -23,7 +23,7 @@
     nix-darwin,
     nixpkgs,
     home-manager,
-    sops-nix,
+    # sops-nix,
     ...
   }: let
     system = "aarch64-darwin";
@@ -33,6 +33,7 @@
     hostProfiles = {
       salusa = "personal";
       caladan = "personal";
+      ix = "personal";
       landerb-mac2 = "work";
     };
 
@@ -43,6 +44,10 @@
         useremail = "landaire@proton.me";
       };
       caladan = {
+        username = "lander";
+        useremail = "landaire@proton.me";
+      };
+      ix = {
         username = "lander";
         useremail = "landaire@proton.me";
       };
@@ -73,7 +78,7 @@
         ./modules/host-users.nix
         ./modules/darwin-configuration.nix
         ./modules/apps.nix
-        ./modules/fonts.nix
+        # ./modules/fonts.nix  # Disabled - requires sops-nix
         home-manager.darwinModules.home-manager
         {
           home-manager.useGlobalPkgs = true;
@@ -87,7 +92,7 @@
           home-manager.extraSpecialArgs = {inherit inputs isPersonal system;};
         }
         {networking.hostName = hostname;}
-        sops-nix.darwinModules.sops
+        # sops-nix.darwinModules.sops
       ];
     in
       nix-darwin.lib.darwinSystem {
