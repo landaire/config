@@ -11,7 +11,7 @@
     curl
     wget
     p7zip
-    #yt-dlp
+    yt-dlp
     doggo
     mise
     procs
@@ -75,7 +75,7 @@
 
     # Essential casks for all hosts
     casks = [
-      "wezterm"
+      "wezterm@nightly"
       "zed"
       "raycast"
       "firefox"

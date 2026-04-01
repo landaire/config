@@ -26,3 +26,8 @@ sign-on-push = true
 enabled = false
 command = ["rustfmt", "+nightly", "--emit", "stdout"]
 patterns = ["glob:'**/*.rs'"]
+
+[colors]
+"diff token" = { underline = false }
+"diff added token" = { bg = "#205020", fg = "#aaffaa" }
+"diff removed token" = { bg = "#502020", fg = "#ffaaaa" }
