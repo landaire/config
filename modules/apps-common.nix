@@ -75,7 +75,7 @@
 
     # Essential casks for all hosts
     casks = [
-      "wezterm@nightly"
+      "wezterm"
       "zed"
       "raycast"
       "firefox"
