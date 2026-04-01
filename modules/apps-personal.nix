@@ -23,6 +23,7 @@
     brews = [
       "twitch-cli"
       "dylibbundler"
+      "cargo-binstall"
     ];
 
     # Personal-use casks
