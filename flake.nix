@@ -35,6 +35,7 @@
       caladan = "personal";
       ix = "personal";
       landerb-mac2 = "work";
+      rossak = "personal";
     };
 
     # Host-specific configuration
@@ -48,6 +49,10 @@
         useremail = "landaire@proton.me";
       };
       ix = {
+        username = "lander";
+        useremail = "landaire@proton.me";
+      };
+      rossak = {
         username = "lander";
         useremail = "landaire@proton.me";
       };
