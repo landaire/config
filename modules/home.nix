@@ -48,6 +48,9 @@ in {
     build-dir = "${config.home.homeDirectory}/.cargo/build"
   '';
 
+  # Claude skills
+  home.file.".claude/skills".source = ../dotfiles/skills;
+
   programs.aerospace = {
     enable = false;
     launchd.enable = true;
