@@ -10,6 +10,7 @@
     settings = {
       # Necessary for using flakes on this system.
       experimental-features = "nix-command flakes";
+      download-buffer-size = 524288000; # 500 MiB
     };
     # do garbage collection weekly to keep disk usage low
     gc = {

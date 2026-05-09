@@ -1,11 +1,15 @@
 {pkgs, ...}: {
   # Common packages that should be installed on all hosts
   environment.systemPackages = with pkgs; [
+    nh
+
     # Essential CLI tools
     fd
     git
     tealdeer
     jujutsu
+    #fs watcher for jj
+    watchman
     ripgrep
     bat
     curl

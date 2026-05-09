@@ -26,6 +26,9 @@ in {
 
   xdg.enable = true;
 
+  # We track nixpkgs-unstable; home-manager master lags the version bump.
+  home.enableNixpkgsReleaseCheck = false;
+
   home.packages =
     lib.optionals isPersonal [
     ];
@@ -264,6 +267,7 @@ in {
   programs.zed-editor = {
     enable = true;
     extensions = ["nix" "toml" "rust"];
+    package = null;
     userSettings = {
       telemetry = {
         diagnostics = false;

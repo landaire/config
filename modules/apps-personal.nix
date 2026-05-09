@@ -9,8 +9,10 @@
     asciinema
     mdbook
     claude-code
+    codex
     trunk
     mergiraf
+    opencode
   ];
 
   homebrew = {

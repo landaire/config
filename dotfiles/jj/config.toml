@@ -27,6 +27,12 @@ enabled = false
 command = ["rustfmt", "+nightly", "--emit", "stdout"]
 patterns = ["glob:'**/*.rs'"]
 
+[fsmonitor]
+backend = "watchman"
+
+[fsmonitor.watchman]
+register-snapshot-trigger = true
+
 # [colors]
 # "diff token" = { underline = false }
 # "diff added token" = { bg = "#205020", fg = "#aaffaa" }
