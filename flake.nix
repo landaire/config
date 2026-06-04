@@ -36,9 +36,6 @@
 
     themes.url = "github:RGBCube/ThemeNix";
 
-    helium.url = "github:amaanq/helium-flake";
-    helium.inputs.nixpkgs.follows = "nixpkgs";
-
     ublock = {
       url = "github:imputnet/uBlock";
       flake = false;

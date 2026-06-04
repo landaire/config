@@ -393,7 +393,6 @@ in
       ...
     }:
     let
-      inherit (lib.lists) singleton;
       inherit (lib.modules) mkIf;
       inherit (lib.strings) toJSON;
 
@@ -401,9 +400,9 @@ in
       defaultPreferences.text = toJSON preferences;
     in
     {
+      # Helium.app is installed via the `helium-browser` homebrew cask
+      # (modules/apps.mod.nix); this module only writes its default Preferences.
       files."Library/Application Support/net.imput.helium/Default/Preferences" =
         mkIf osConfig.nixpkgs.hostPlatform.isDarwin defaultPreferences;
-
-      packages = singleton inputs.helium.packages.${osConfig.nixpkgs.hostPlatform.system}.default;
     };
 }
