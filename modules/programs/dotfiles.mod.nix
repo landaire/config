@@ -10,9 +10,11 @@
       files.".zprofile".source = ../../dotfiles/.zprofile;
       files.".profile".source = ../../dotfiles/.profile;
 
-      files.".cargo/config.toml".text = ''
+      # Cargo reads config from $CARGO_HOME, which use-xdg-dirs points at
+      # ${config.xdg.data.directory}/cargo. Writing to ~/.cargo would be ignored.
+      xdg.data.files."cargo/config.toml".text = ''
         [build]
-        build-dir = "${config.directory}/.cargo/build"
+        build-dir = "${config.xdg.data.directory}/cargo/build"
       '';
 
       # Claude skills under CLAUDE_CONFIG_DIR (~/.config/claude-code) set by use-xdg-dirs.
