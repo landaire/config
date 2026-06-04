@@ -64,6 +64,7 @@
             "pkg-config"
             "ninja"
             "cmake"
+            "watchman"
           ];
           homebrew.casks = [
             "wezterm"
