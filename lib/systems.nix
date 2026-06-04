@@ -34,14 +34,18 @@ in
           ++ singleton {
             networking.hostName = hostName;
 
-            # System user account (required for system.primaryUser derivation).
+            # System user account. REQUIRED and load-bearing: primary-user.mod.nix
+            # derives system.primaryUser from a /Users/-homed user, AND hjem's
+            # darwin base derives each home user's `directory` from this
+            # users.users.<name>.home. Removing this breaks config.directory
+            # (and the XDG vars in modules/home.mod.nix) — do not delete.
             users.users.${username} = {
               name = username;
               home = "/Users/${username}";
             };
 
-            # hjem (darwinModules.home) supplies `home`; attach every home module
-            # to this user and create the account.
+            # hjem (darwinModules.home) supplies `home`; an entry here enables the
+            # user (enable defaults true) and attaches every home module to them.
             home.users.${username} = { };
             home.extraModules = attrValues self.homeModules;
           };
