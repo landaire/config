@@ -366,7 +366,7 @@ in
       );
     in
     {
-      system.activationScripts.script.text = mkAfter ''
+      system.activationScripts.postActivation.text = mkAfter ''
         ${config.system.activationScripts.helium.text}
       '';
       system.activationScripts.helium.text = asShell pkgs.nushell "helium-policy.nu" /* nu */ ''
