@@ -23,6 +23,7 @@
             fd
             git
             tealdeer
+            watchman
             curl
             wget
             p7zip
@@ -64,7 +65,6 @@
             "pkg-config"
             "ninja"
             "cmake"
-            "watchman"
           ];
           homebrew.casks = [
             "wezterm"
