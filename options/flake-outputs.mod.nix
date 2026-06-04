@@ -7,7 +7,7 @@ let
   inherit (lib.attrsets) mapAttrs optionalAttrs;
   inherit (lib.lists) singleton;
   inherit (lib.options) mkOption;
-  inherit (lib.types) deferredModule lazyAttrsOf;
+  inherit (lib.types) deferredModule lazyAttrsOf raw;
 
   wrap =
     kind: name: value:
@@ -20,6 +20,12 @@ let
     };
 in
 {
+  options.flake.darwinConfigurations = mkOption {
+    type = lazyAttrsOf raw;
+    default = { };
+    description = "Darwin system configurations.";
+  };
+
   options.flake.commonModules = mkOption {
     type = lazyAttrsOf deferredModule;
     default = { };
