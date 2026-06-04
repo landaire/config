@@ -34,9 +34,15 @@ in
           ++ singleton {
             networking.hostName = hostName;
 
+            # System user account (required for system.primaryUser derivation).
+            users.users.${username} = {
+              name = username;
+              home = "/Users/${username}";
+            };
+
             # hjem (darwinModules.home) supplies `home`; attach every home module
             # to this user and create the account.
-            home.users.${username}.enable = true;
+            home.users.${username} = { };
             home.extraModules = attrValues self.homeModules;
           };
       };
