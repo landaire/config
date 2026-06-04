@@ -1,123 +1,77 @@
 {
-  description = "Darwin config";
+  nixConfig = {
+    extra-experimental-features = [
+      "flakes"
+      "nix-command"
+      "pipe-operators"
+    ];
+  };
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-    # darwin = {
-    #   url = "github:nix-darwin/nix-darwin/master";
-    #   inputs.nixpkgs.follows = "darwin";
-    # };
+
+    flake-parts.url = "github:hercules-ci/flake-parts";
+    flake-parts.inputs.nixpkgs-lib.follows = "nixpkgs";
 
     nix-darwin.url = "github:nix-darwin/nix-darwin/master";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
 
-    home-manager.url = "github:nix-community/home-manager";
-    home-manager.inputs.nixpkgs.follows = "nixpkgs";
+    hjem.url = "github:feel-co/hjem";
+    hjem.inputs.nixpkgs.follows = "nixpkgs";
+    hjem.inputs.nix-darwin.follows = "nix-darwin";
 
-    # sops-nix.url = "github:Mic92/sops-nix";
+    hjem-rum.url = "github:snugnug/hjem-rum";
+    hjem-rum.inputs.nixpkgs.follows = "nixpkgs";
+    hjem-rum.inputs.hjem.follows = "hjem";
+
+    nix-homebrew.url = "github:zhaofengli/nix-homebrew";
+    homebrew-core = {
+      url = "github:homebrew/homebrew-core";
+      flake = false;
+    };
+    homebrew-cask = {
+      url = "github:homebrew/homebrew-cask";
+      flake = false;
+    };
+
+    themes.url = "github:RGBCube/ThemeNix";
+
+    helium.url = "github:amaanq/helium-flake";
+    helium.inputs.nixpkgs.follows = "nixpkgs";
+
+    ublock = {
+      url = "github:imputnet/uBlock";
+      flake = false;
+    };
   };
 
-  # flake.nix (outputs fragment)
-  outputs = inputs @ {
-    self,
-    nix-darwin,
-    nixpkgs,
-    home-manager,
-    # sops-nix,
-    ...
-  }: let
-    system = "aarch64-darwin";
-    lib = nixpkgs.lib;
+  outputs =
+    inputs:
+    inputs.flake-parts.lib.mkFlake
+      {
+        inherit inputs;
 
-    # Host profiles for conditional module loading
-    hostProfiles = {
-      salusa = "personal";
-      caladan = "personal";
-      ix = "personal";
-      landerb-mac2 = "work";
-      rossak = "personal";
-    };
-
-    # Host-specific configuration
-    hostConfigs = {
-      salusa = {
-        username = "lander";
-        useremail = "landaire@proton.me";
-      };
-      caladan = {
-        username = "lander";
-        useremail = "landaire@proton.me";
-      };
-      ix = {
-        username = "lander";
-        useremail = "landaire@proton.me";
-      };
-      rossak = {
-        username = "lander";
-        useremail = "landaire@proton.me";
-      };
-      landerb-mac2 = {
-        username = "landerb";
-        useremail = "landerb@meta.com";
-      };
-    };
-
-    # Helper to build one darwin system per hostname
-    mkDarwin = hostname: let
-      # Get host-specific config, with fallback defaults
-      hostConfig =
-        hostConfigs.${
-          hostname
-        } or {
-          username = "lander";
-          useremail = "landaire@proton.me";
-        };
-      username = hostConfig.username;
-      useremail = hostConfig.useremail;
-      hostProfile = hostProfiles.${hostname} or "personal";
-      isPersonal = hostProfile == "personal";
-
-      # Host-specific modules
-      hostModules = [
-        ./configuration.nix
-        ./modules/host-users.nix
-        ./modules/darwin-configuration.nix
-        ./modules/apps.nix
-        # ./modules/fonts.nix  # Disabled - requires sops-nix
-        home-manager.darwinModules.home-manager
+        specialArgs.lib = inputs.nixpkgs.lib.extend (
+          final: prev:
+          inputs.nixpkgs.lib.recursiveUpdate prev (
+            import ./lib {
+              lib = final;
+              inherit (inputs) self;
+            }
+          )
+        );
+      }
+      (
+        { lib, ... }:
+        let
+          inherit (lib.filesystem) listFilesRecursive;
+          inherit (lib.lists) filter;
+          inherit (lib.strings) hasSuffix;
+        in
         {
-          home-manager.useGlobalPkgs = true;
-          home-manager.useUserPackages = true;
-          home-manager.backupFileExtension = "bak";
-          # Use the same home config for all hosts
-          home-manager.users.${username} = import ./modules/home.nix;
-          home-manager.sharedModules =
-            lib.optionals isPersonal [
-            ];
-          home-manager.extraSpecialArgs = {inherit inputs isPersonal system;};
+          systems = [ "aarch64-darwin" ];
+
+          imports = filter (hasSuffix ".mod.nix") (listFilesRecursive ./.);
         }
-        {networking.hostName = hostname;}
-        # sops-nix.darwinModules.sops
-      ];
-    in
-      nix-darwin.lib.darwinSystem {
-        inherit system;
-        # Pass through anything you want available inside modules
-        specialArgs = inputs // {inherit username useremail hostname hostProfile isPersonal;};
-        modules = hostModules;
-      };
-
-    # Get list of all defined hosts
-    hosts = builtins.attrNames hostConfigs;
-
-    # Turn the host list into an attrset for darwinConfigurations
-    mkMap = names:
-      builtins.listToAttrs (map (n: {
-          name = n;
-          value = mkDarwin n;
-        })
-        names);
-  in {
-    darwinConfigurations = mkMap hosts;
-  };
+      );
 }
