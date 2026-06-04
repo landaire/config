@@ -71,6 +71,7 @@
             "zed"
             "raycast"
             "firefox"
+            "helium-browser"
             "jordanbaird-ice"
             "010-editor"
             "monodraw"
