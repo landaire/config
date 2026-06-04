@@ -95,7 +95,6 @@
             opencode
           ];
 
-          homebrew.taps = [ "nikitabobko/tap" ];
           homebrew.brews = [
             "twitch-cli"
             "dylibbundler"
@@ -123,7 +122,6 @@
             "signal"
             "telegram"
             "claude"
-            "nikitabobko/tap/aerospace"
             "transmit"
             "glide"
             "bitwarden"
