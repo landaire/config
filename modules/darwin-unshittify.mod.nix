@@ -14,7 +14,7 @@
     in
     {
       # SHADOW-XCODE
-      system.activationScripts.script.text = mkAfter ''
+      system.activationScripts.postActivation.text = mkAfter ''
         ${config.system.activationScripts.shadow-xcode.text}
       '';
       system.activationScripts.shadow-xcode.text = asShell pkgs.nushell "shadow-xcode.nu" /* nu */ ''
