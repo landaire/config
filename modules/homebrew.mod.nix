@@ -4,6 +4,7 @@
     { config, lib, ... }:
     let
       inherit (lib.lists) singleton;
+      inherit (lib.attrsets) attrNames;
     in
     {
       imports = singleton inputs.nix-homebrew.darwinModules.nix-homebrew;
@@ -14,6 +15,11 @@
         upgrade = true;
         cleanup = "zap";
       };
+
+      # Declare the nix-homebrew-managed taps in the Brewfile too, so
+      # `brew bundle --cleanup` (from onActivation.cleanup = "zap") does not try
+      # to untap them — untapping homebrew/cask fails when casks are installed.
+      homebrew.taps = attrNames config.nix-homebrew.taps;
 
       nix-homebrew = {
         enable = true;
