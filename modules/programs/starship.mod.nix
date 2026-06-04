@@ -1,0 +1,17 @@
+{
+  flake.homeModules.starship = {
+    programs.starship = {
+      enable = true;
+      integrations.nushell.enable = true;
+
+      settings = {
+        directory.fish_style_pwd_dir_length = 1;
+        time = {
+          disabled = false;
+          format = "[\\[ $time \\]]($style) ";
+        };
+        gcloud.disabled = true;
+      };
+    };
+  };
+}
