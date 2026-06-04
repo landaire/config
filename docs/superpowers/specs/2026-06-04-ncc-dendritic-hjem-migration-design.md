@@ -19,9 +19,20 @@ flake with manual module lists + home-manager) onto the architecture used by
 
 Folded into the migration are the three originally-requested "yoinks":
 
-1. **Helium** browser config (full port, **minus the Stylus extension**).
+1. **Helium** browser config (ported, with a **trimmed extension set** — see
+   Helium section).
 2. **macOS screenshot location** → `~/Downloads/Screenshots`.
 3. **difftastic** config (theme-aware `difft` wrapper + git/jj integration).
+
+Plus four additional power-user steals the user opted into:
+
+4. **`darwin-unshittify`** — macOS hardening/privacy + the shadow-xcode trick.
+5. **`use-xdg-dirs`** — force XDG compliance to declutter `$HOME`.
+6. **nushell ecosystem + niceties** — carapace, vivid, direnv, bat/ripgrep XDG
+   configs, hushlogin, and garnix/nix-community binary caches.
+7. **jj power config** — ncc's jujutsu workflow, customized to the user
+   (`landaire-contrib` fork target, `landaire/*` bookmarks, own-signing), and
+   **fully nix-managed so `dotfiles/jj/config.toml` can be deleted**.
 
 This is a full re-platform of the flake's backbone, not a drop-in of snippets,
 because ncc's borrowed modules are written against hjem (not home-manager) and
@@ -100,16 +111,23 @@ options/
   unfree.mod.nix               # allowedUnfreePackageNames -> allowUnfreePredicate
 modules/
   home.mod.nix                 # hjem wiring
-  nix.mod.nix                  # nix settings + gc
-  darwin-desktop.mod.nix       # dock/finder/trackpad/NSGlobalDomain/screenshots
+  nix.mod.nix                  # nix settings + gc + caches (garnix, nix-community)
+  darwin-desktop.mod.nix       # dock/finder/trackpad/NSGlobalDomain/screenshots/animations
+  darwin-unshittify.mod.nix    # shadow-xcode + macOS hardening/privacy
+  sudo.mod.nix                 # touchID + pwfeedback + no-lecture + env_keep
+  hammerspoon.mod.nix          # XDG-relocated hammerspoon config (~/.config/hammerspoon)
+  use-xdg-dirs.mod.nix         # XDG compliance: cargo/go/python/node/zsh/rg/claude-code/etc
+  hushlogin.mod.nix            # suppress login MOTD
   fonts.mod.nix
   homebrew.mod.nix             # nix-homebrew + taps/brews/casks/masApps
   primary-user.mod.nix         # user identity / host-users
   apps.mod.nix (+ profile split)   # systemPackages, personal vs work
   version-control.mod.nix      # git homeModule (identity + base settings)
   difftastic.mod.nix           # theme-aware difft + git/jj diff integration
-  web-browser.mod.nix          # Helium (minus Stylus)
-  programs/                    # nushell, zoxide, starship, zed, atuin, jujutsu, aerospace, dotfiles
+  web-browser.mod.nix          # Helium (trimmed extension set)
+  bat.mod.nix, ripgrep.mod.nix # XDG-config'd CLI tools via flag-list generators
+  programs/                    # nushell(+carapace/vivid/direnv), zoxide, starship,
+                               #   zed, atuin, jujutsu, aerospace, dotfiles
 hosts/
   salusa.mod.nix
   caladan.mod.nix
@@ -201,10 +219,27 @@ Mirror ncc:
 - **atuin:** write `~/.config/atuin/config.toml` (style = compact) via
   `xdg.config.files`; append `atuin init nu` output to nushell config to
   replicate `enableNushellIntegration`.
-- **jujutsu:** write `jj/config.toml` via a TOML generator (`writeTOML`) from
-  the user's **existing** `dotfiles/jj/config.toml` (identity, ssh signing,
-  watchman fsmonitor, rustfmt fix tool). The difftastic module merges its
-  `ui.diff-formatter` / diff settings into the same file.
+- **jujutsu:** write `jj/config.toml` via a TOML generator (`writeTOML`),
+  **fully nix-managed so `dotfiles/jj/config.toml` is deleted**. Combines:
+  - The user's existing settings: identity (`Lander Brandt`, email per Open
+    flags), SSH signing with `behavior = "own"` and key `~/.ssh/id_ed25519`,
+    watchman fsmonitor (`register-snapshot-trigger`), the rustfmt `fix` tool
+    (kept disabled), `editor = nvim`.
+  - ncc's power features: aliases (`..`/`,,` edit parent/child, `f`/`p`/`cl`/`i`
+    fetch/push/clone/init, `a`/`c`/`ci`/`d`/`e`/`l`/`la`/`r`/`s`/`si`/`sh`/`u`,
+    `resa` mergiraf resolve), `ui.default-command = "log"`, conflict marker
+    snapshot style, `ui.graph.style` from `theme.cornerRadius`, draft-commit
+    description template with diff stat, auto-track + push-new-bookmarks.
+  - **User customizations** (replacing RGBCube's values):
+    - `fork` command → `gh repo fork --org landaire-contrib --remote` (then
+      `gh repo set-default upstream`, retrack `trunk()` origin→upstream, fetch,
+      track bookmarks on both remotes).
+    - `templates.git_push_bookmark` → `"landaire/change-" ++ change_id.short()`.
+    - `remotes."*".auto-track-bookmarks` → `"landaire/*"`.
+    - Drop `rad` (radicle) from `git.fetch`; keep `origin` + `upstream`.
+    - `signing.behavior = "own"` (user's preference; ncc uses `"drop"`).
+  - The difftastic module merges its `ui.diff-formatter` into the same file.
+  - Install `jujutsu`, `jjui`/`lazyjj`, and `mergiraf`.
 - **aerospace:** **kept disabled** (matching today). Port the settings
   structure via nix-darwin's `services.aerospace` (a darwin-level service),
   `enable = false`, ready to flip on later. Keybindings/workspaces/window rules
@@ -237,7 +272,7 @@ Port ncc's module:
   $left $right ]`, merged into the jj config.
 
 ### 3. Helium (`modules/web-browser.mod.nix`)
-Port ncc's module **verbatim except removing `extensions.stylus`**:
+Port ncc's module structure, with a trimmed extension set:
 - Add `inputs.helium` and `inputs.ublock`.
 - **darwinModule:** activation script (via `lib.shell.asShell` + nushell)
   writing `/Library/Managed Preferences/net.imput.helium.plist` and per-extension
@@ -245,16 +280,78 @@ Port ncc's module **verbatim except removing `extensions.stylus`**:
   default browser via `defaultbrowser`.
 - **homeModule:** writes the Helium `Preferences` JSON (layout, onboarding,
   bookmark bar, download prompt) and installs the Helium package.
-- Keeps ncc's defaults as-is: Kagi default search, uBlock filter lists +
-  custom filters, bookmarklet folders (Archive/Reverse Image/Nuke/Toggle), and
-  the extension set: consent-o-matic, ublock-origin, dearrow, sponsorblock,
-  dark-reader, refined-github, violentmonkey, vimium-c, floccus, kagi,
-  keepassxc-browser. **Stylus removed.**
+- **Extension set (final):**
+  - `ublock-origin` — `blockjmkbacgjkknlgpkjjiijinjdanf` (preinstalled,
+    force-pinned). Keep ncc's filter lists + custom filters (incl. the
+    YouTube-Shorts→watch redirect and the old.reddit.com redirect rules).
+  - `dearrow` — `enamippconapkdmgfgjchkhakpfinmaj`
+  - `sponsorblock` — `mnjggcdmjocbbbhaepdhchncahnbgone`
+  - `reddit-enhancement-suite` — `kbmfpngjjgdllneeigpgjifpgocmfgmb` (operates on
+    old reddit; pairs with the uBlock old-reddit redirect)
+  - `frankerfacez` — `fadndhdgpmmaapbmfcknlfgcflmmmieb`
+- **Removed from ncc's set:** consent-o-matic, dark-reader, stylus,
+  refined-github, violentmonkey, vimium-c, floccus, kagi, keepassxc-browser.
+- Keep ncc's bookmarklet folders (Archive / Reverse Image / Nuke / Toggle).
+- **Default search:** Kagi (ncc default, retained per user) — `DefaultSearchProvider*`
+  policy + the `!rs` / `!no` site-search shortcuts kept as-is.
+
+## Additional power-user steals
+
+### `darwin-unshittify.mod.nix` (darwinModule)
+Port ncc's module:
+- **shadow-xcode** activation script: detects `/usr/bin` stub binaries that
+  trigger the "install developer tools" prompt and symlinks `/usr/bin/false`
+  over them in a shadow dir prepended to `PATH` (nushell-side). Includes the
+  paired `homeModules.shadow-xcode` PATH-insert + assertion.
+- Hardening/privacy defaults: `loginwindow` (DisableConsoleAccess, GuestEnabled
+  off), screensaver password (askForPassword, 0 delay),
+  `NSDocumentSaveNewDocumentsToCloud = false`, `LSQuarantine = false`,
+  `SoftwareUpdate.AutomaticallyInstallMacOSUpdates = false`, and
+  `com.apple.AdLib` ad-tracking off.
+
+### `darwin-desktop.mod.nix` animation/snappiness extras
+Beyond the dock/finder/trackpad the user already has, adopt ncc's:
+`autohide-time-modifier = 0` + `autohide-delay = 0` (instant dock),
+expose/springboard animation durations = 0, `launchanim = 0`, disable all four
+hot corners (`wvous-*-corner = 0`), `mru-spaces = false`, `show-recents = false`,
+`menuExtraClock` 24h + seconds, `controlcenter` battery percentage + Bluetooth.
+
+### `use-xdg-dirs.mod.nix` (homeModule)
+Port ncc's XDG-compliance module: sets env vars + creates dirs so tool state
+leaves `$HOME` — cargo, go, gradle, node REPL history, python history, less
+history, sqlite history, zsh history/zcompdump, ripgrep config, aws, android,
+and `CLAUDE_CONFIG_DIR`. Adapt to darwin paths; drop Linux-only bits.
+
+### nushell ecosystem + niceties
+- `programs/nushell/`: add **carapace** (completions), **vivid**
+  (`LS_COLORS`), and **direnv** integration modules alongside the core nushell
+  module.
+- `bat.mod.nix` / `ripgrep.mod.nix`: declarative configs via the
+  `toCliFlagList` / `toCliArgumentList` generators (ported into `lib`).
+- `hushlogin.mod.nix`: drop a `~/.hushlogin` to silence the login banner.
+- `nix.mod.nix`: add binary caches `cache.garnix.io` and
+  `nix-community.cachix.org` with their public keys to `nixConfig` /
+  `nix.settings`.
+
+### macOS extras (selected)
+- **`sudo.mod.nix` (darwinModule):** keep the existing touchID auth and add
+  `security.sudo.extraConfig` with `Defaults lecture = never`,
+  `Defaults pwfeedback` (asterisks while typing the sudo password), and
+  `Defaults env_keep += "EDITOR PATH"`.
+- **`hammerspoon.mod.nix`:** relocate the Hammerspoon config from `~/.hammerspoon`
+  to `~/.config/hammerspoon` — darwinModule sets
+  `CustomSystemPreferences."org.hammerspoon.Hammerspoon".MJConfigFile =
+  "~/.config/hammerspoon/init.lua"`; homeModule places the SpoonInstall +
+  PaperWM spoons and `init.lua` under `xdg.config.files."hammerspoon/…"`.
+  (Pairs with `use-xdg-dirs`.) Window-manager mechanism stays the user's own
+  (Aerospace); ncc's PaperWM/Hammerspoon WM and `darwin-wm` NSGlobalDomain
+  tweaks and Karabiner remap are **not** adopted.
 
 ## Open flags (defaults chosen; tune post-migration)
-- Helium ships Kagi as default search and several extensions tied to external
-  services (floccus sync, kagi, keepassxc-browser). Full port keeps them;
-  prune later if unused.
+- jj `user.email` differs across contexts (jj dotfile uses
+  `landerbrandt@gmail.com`; flake host configs use `landaire@proton.me`
+  personal / `landerb@meta.com` work). Resolve exact per-host identity during
+  Phase 3 — likely a default identity overridden on the work host.
 - Helium `RestoreOnStartup` / session-restore is macOS-limited (documented in
   ncc's inline comments); ported as-is.
 - `unfree` allowlist vs blanket `allowUnfree = true` — start with allowlist,
@@ -270,13 +367,18 @@ Each phase ends with a `jj commit` and a `darwin-rebuild build --flake .#<canary
   (default, shell, generators, systems with `darwinSystem`), `options/`
   (flake-outputs, theme, unfree), `modules/home.mod.nix` hjem wiring. Prove one
   trivial host builds.
-- **Phase 2 — Darwin system concerns.** `nix.mod.nix`, `darwin-desktop.mod.nix`
-  (incl. screenshots → Downloads/Screenshots), `fonts.mod.nix`,
-  `homebrew.mod.nix` (nix-homebrew), `primary-user.mod.nix`, touchID sudo,
+- **Phase 2 — Darwin system concerns.** `nix.mod.nix` (+ garnix/nix-community
+  caches), `darwin-desktop.mod.nix` (incl. screenshots → Downloads/Screenshots
+  and the animation/snappiness extras), `darwin-unshittify.mod.nix`
+  (shadow-xcode + hardening), `sudo.mod.nix` (touchID + pwfeedback/no-lecture),
+  `hammerspoon.mod.nix` (MJConfigFile → XDG), `hushlogin.mod.nix`,
+  `fonts.mod.nix`, `homebrew.mod.nix` (nix-homebrew), `primary-user.mod.nix`,
   shells.
-- **Phase 3 — Home programs.** nushell/zoxide/starship/zed via hjem-rum;
-  atuin/jujutsu/aerospace + all dotfiles via `files`. Verify the canary host's
-  home generation matches today's behaviour.
+- **Phase 3 — Home programs.** nushell (+ carapace/vivid/direnv)/zoxide/
+  starship/zed via hjem-rum; atuin/jujutsu/aerospace, `use-xdg-dirs`,
+  `bat`/`ripgrep`, and all dotfiles via `files`. Delete `dotfiles/jj/config.toml`
+  once jj is fully nix-managed. Verify the canary host's home generation matches
+  today's behaviour.
 - **Phase 4 — Yoinked features.** difftastic module, version-control (git
   identity), Helium full port (minus Stylus).
 - **Phase 5 — Hosts & profiles.** All 5 hosts as `.mod.nix` with personal/work
