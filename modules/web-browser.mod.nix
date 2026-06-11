@@ -105,6 +105,9 @@ let
   # TWITCH
   extensions.frankerfacez.id = "fadndhdgpmmaapbmfcknlfgcflmmmieb";
 
+  # PASSWORDS
+  extensions.bitwarden.id = "nngceckbapebfimnlniiiahkandclblb";
+
   policy = {
     # EXTENSIONS
     ExtensionInstallBlocklist = singleton "*";
