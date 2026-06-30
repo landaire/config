@@ -1,6 +1,10 @@
-{ inputs, lib, ... }:
-let
-  inherit (lib.attrsets)
+{
+  inputs,
+  lib,
+  ...
+}: let
+  inherit
+    (lib.attrsets)
     attrNames
     concatMapAttrs
     filterAttrs
@@ -9,91 +13,91 @@ let
     mapAttrsToList
     optionalAttrs
     ;
-  inherit (lib.lists)
+  inherit
+    (lib.lists)
     filter
     foldr
     singleton
     ;
-  inherit (lib.trivial)
+  inherit
+    (lib.trivial)
     const
     importJSON
     warn
     ;
-  inherit (lib.fixedPoints) fix;
   inherit (lib.strings) hasInfix;
 
   # UNSLOP
-  extensions.ublock-origin =
-    let
-      assets = importJSON "${inputs.ublock}/assets/assets.json";
+  extensions.ublock-origin = let
+    assets = importJSON "${inputs.ublock}/assets/assets.json";
 
-      filterLists =
-        (
-          assets
-          |> filterAttrs (_: spec: (spec.content or null) == "filters" && (spec.group or null) != "regions")
-          |> attrNames
-          |> filter (name: name != "ublock-experimental")
-        )
-        ++ [
-          "TUR-0"
-          "user-filters"
+    filterLists =
+      (
+        assets
+        |> filterAttrs (_: spec: (spec.content or null) == "filters" && (spec.group or null) != "regions")
+        |> attrNames
+        |> filter (name: name != "ublock-experimental")
+      )
+      ++ [
+        "TUR-0"
+        "user-filters"
 
-          "https://raw.githubusercontent.com/DandelionSprout/adfilt/refs/heads/master/BrowseWebsitesWithoutLoggingIn.txt"
-          "https://raw.githubusercontent.com/DandelionSprout/adfilt/refs/heads/master/ClearURLs%20for%20uBo/clear_urls_uboified.txt"
-          "https://raw.githubusercontent.com/DandelionSprout/adfilt/refs/heads/master/LegitimateURLShortener.txt"
-          "https://raw.githubusercontent.com/yokoffing/filterlists/refs/heads/main/annoyance_list.txt"
-          "https://raw.githubusercontent.com/yokoffing/filterlists/refs/heads/main/click2load.txt"
-          "https://raw.githubusercontent.com/yokoffing/filterlists/refs/heads/main/privacy_essentials.txt"
-        ];
-
-      filters = [
-        # YOUTUBE SHORTS -> WATCH
-        ''||youtube.com/shorts/$document,uritransform=/^https:\/\/(?:www\.|m\.)?youtube\.com\/shorts\/([^\/?#]+)/https:\/\/www.youtube.com\/watch?v=\$1/''
-
-        # OLD REDDIT
-        "@@||reddit.com/media$document"
-        "@@||reddit.com/mod$document"
-        "@@||reddit.com/poll$document"
-        "@@||reddit.com/settings$document"
-        "@@||reddit.com/topics$document"
-        "@@||reddit.com/community-points$document"
-        "@@||reddit.com/appeal$document"
-        "@@||reddit.com/appeals$document"
-        "@@||reddit.com/notifications$document"
-        "@@||reddit.com/message/compose/$document"
-        "@@||reddit.com/mail^$document"
-        "@@||reddit.com/answers^$document"
-        "@@||reddit.com/r/subreddit^$document"
-        ''@@/^https:\/\/\w*\.?reddit\.com\/r\/[A-Za-z0-9_]+\/s\//$document''
-        ''@@/^https:\/\/\w*\.?reddit\.com\/.*[?&]new_reddit=true(?:$|[&#])/$document''
-
-        ''||reddit.com/gallery/$document,uritransform=/^https:\/\/(?:www\.|np\.|amp\.|i\.)?reddit\.com\/gallery\/(.*)/https:\/\/old.reddit.com\/comments\/\$1/''
-        ''||reddit.com^$document,uritransform=/^https:\/\/(?:www\.|np\.|amp\.|i\.)?reddit\.com\/(?!gallery\/)/https:\/\/old.reddit.com\//''
-
-        "old.reddit.com##:is(#eu-cookie-policy, #redesign-beta-optin-btn)"
+        "https://raw.githubusercontent.com/DandelionSprout/adfilt/refs/heads/master/BrowseWebsitesWithoutLoggingIn.txt"
+        "https://raw.githubusercontent.com/DandelionSprout/adfilt/refs/heads/master/ClearURLs%20for%20uBo/clear_urls_uboified.txt"
+        "https://raw.githubusercontent.com/DandelionSprout/adfilt/refs/heads/master/LegitimateURLShortener.txt"
+        "https://raw.githubusercontent.com/yokoffing/filterlists/refs/heads/main/annoyance_list.txt"
+        "https://raw.githubusercontent.com/yokoffing/filterlists/refs/heads/main/click2load.txt"
+        "https://raw.githubusercontent.com/yokoffing/filterlists/refs/heads/main/privacy_essentials.txt"
       ];
-    in
-    {
-      id = "blockjmkbacgjkknlgpkjjiijinjdanf";
-      preinstalled = true;
 
-      settings.toolbar_pin = "force_pinned";
+    filters = [
+      # YouTube shorts -> watch (main_frame only; cannot match /embed/)
+      ''||youtube.com/shorts/$document,uritransform=/^https:\/\/(?:www\.|m\.)?youtube\.com\/shorts\/([^\/?#]+)/https:\/\/www.youtube.com\/watch?v=$1/''
 
-      policy = {
-        toOverwrite.filterLists =
-          filter (name: !(hasInfix "://" name || name == "user-filters" || hasAttr name assets)) filterLists
-          |> foldr (name: warn "helium: unknown ublock filter list: ${name}") filterLists;
+      # Reddit: exempt these paths from the old-reddit transform
+      ''@@||reddit.com/media$uritransform''
+      ''@@||reddit.com/mod$uritransform''
+      ''@@||reddit.com/poll$uritransform''
+      ''@@||reddit.com/settings$uritransform''
+      ''@@||reddit.com/topics$uritransform''
+      ''@@||reddit.com/community-points$uritransform''
+      ''@@||reddit.com/appeal$uritransform''
+      ''@@||reddit.com/appeals$uritransform''
+      ''@@||reddit.com/notifications$uritransform''
+      ''@@||reddit.com/message/compose/$uritransform''
+      ''@@||reddit.com/mail^$uritransform''
+      ''@@||reddit.com/answers^$uritransform''
+      ''@@/^https:\/\/\w*\.?reddit\.com\/r\/[A-Za-z0-9_]+\/s\//$uritransform''
+      ''@@/^https:\/\/\w*\.?reddit\.com\/.*[?&]new_reddit=true(?:$|[&#])/$uritransform''
 
-        toOverwrite.filters = filters;
+      # Transforms
+      ''||reddit.com/gallery/$document,uritransform=/^https:\/\/(?:www\.|np\.|amp\.|i\.)?reddit\.com\/gallery\/(.*)/https:\/\/old.reddit.com\/comments\/$1/''
+      ''||reddit.com^$document,uritransform=/^https:\/\/(?:www\.|np\.|amp\.|i\.)?reddit\.com\/(?!gallery\/)/https:\/\/old.reddit.com\//''
 
-        userSettings = [
-          [
-            "userFiltersTrusted"
-            "true"
-          ]
-        ];
-      };
+      # Cosmetic
+      ''old.reddit.com##:is(#eu-cookie-policy, #redesign-beta-optin-btn)''
+    ];
+  in {
+    id = "blockjmkbacgjkknlgpkjjiijinjdanf";
+    preinstalled = true;
+
+    settings.toolbar_pin = "force_pinned";
+
+    policy = {
+      toOverwrite.filterLists =
+        filter (name: !(hasInfix "://" name || name == "user-filters" || hasAttr name assets)) filterLists
+        |> foldr (name: warn "helium: unknown ublock filter list: ${name}") filterLists;
+
+      toOverwrite.filters = filters;
+
+      userSettings = [
+        [
+          "userFiltersTrusted"
+          "true"
+        ]
+      ];
     };
+  };
 
   # YOUTUBE
   extensions.dearrow.id = "enamippconapkdmgfgjchkhakpfinmaj";
@@ -123,13 +127,13 @@ let
     ExtensionSettings =
       extensions
       |> concatMapAttrs (
-        _: extension: optionalAttrs (extension ? settings) { ${extension.id} = extension.settings; }
+        _: extension: optionalAttrs (extension ? settings) {${extension.id} = extension.settings;}
       );
 
     "3rdparty".extensions =
       extensions
       |> concatMapAttrs (
-        _: extension: optionalAttrs (extension ? policy) { ${extension.id} = extension.policy; }
+        _: extension: optionalAttrs (extension ? policy) {${extension.id} = extension.policy;}
       );
 
     DefaultBrowserSettingEnabled = false;
@@ -145,71 +149,94 @@ let
     RestoreOnStartup = 1;
 
     # BOOKMARKS
-    ManagedBookmarks =
-      let
-        mkFolder = name: children: { inherit name children; };
+    ManagedBookmarks = let
+      mkFolder = name: children: {inherit name children;};
 
-        mkBookmark = name: url: { inherit name url; };
+      mkBookmark = name: url: {inherit name url;};
 
-        mkScriptlet =
-          name: javascript:
-          mkBookmark name (
-            "javascript:"
-            + javascript
-            + /* javascript */ ''
-              void undefined;
+      mkScriptlet = name: javascript:
+        mkBookmark name (
+          "javascript:"
+          + javascript
+          +
+          /*
+          javascript
+          */
+          ''
+            void undefined;
+          ''
+        );
+    in [
+      {toplevel_name = "Tools";}
+
+      (mkFolder "Archive" [
+        (mkFolder "Wayback" [
+          (mkScriptlet "View"
+            /*
+            javascript
+            */
             ''
-          );
-      in
-      [
-        { toplevel_name = "Tools"; }
-
-        (mkFolder "Archive" [
-          (mkFolder "Wayback" [
-            (mkScriptlet "View" /* javascript */ ''
               window.open("https://web.archive.org/web/*/" + location.href);
             '')
-            (mkScriptlet "Save" /* javascript */ ''
+          (mkScriptlet "Save"
+            /*
+            javascript
+            */
+            ''
               window.open("https://web.archive.org/save/" + location.href);
             '')
-          ])
-          (mkFolder "Archive.is" [
-            (mkScriptlet "View" /* javascript */ ''
+        ])
+        (mkFolder "Archive.is" [
+          (mkScriptlet "View"
+            /*
+            javascript
+            */
+            ''
               window.open("https://archive.ph/newest/" + location.href);
             '')
-            (mkScriptlet "Save" /* javascript */ ''
+          (mkScriptlet "Save"
+            /*
+            javascript
+            */
+            ''
               window.open("https://archive.ph/?run=1&url=" + encodeURIComponent(location.href));
             '')
-          ])
         ])
+      ])
 
-        (mkFolder "Reverse Image" (
-          let
-            mkReverse =
-              name: prefix:
-              mkScriptlet name /* javascript */ ''
-                document.addEventListener("click", function handler(event) {
-                  let image = event.target.closest("img");
-                  if (!image) return;
+      (mkFolder "Reverse Image" (
+        let
+          mkReverse = name: prefix:
+            mkScriptlet name
+            /*
+            javascript
+            */
+            ''
+              document.addEventListener("click", function handler(event) {
+                let image = event.target.closest("img");
+                if (!image) return;
 
-                  event.preventDefault();
-                  event.stopPropagation();
-                  document.removeEventListener("click", handler, true);
+                event.preventDefault();
+                event.stopPropagation();
+                document.removeEventListener("click", handler, true);
 
-                  window.open("${prefix}" + encodeURIComponent(image.src));
-                }, true);
-              '';
-          in
-          [
-            (mkReverse "Yandex" "https://yandex.com/images/search?rpt=imageview&url=")
-            (mkReverse "Google Lens" "https://lens.google.com/uploadbyurl?url=")
-            (mkReverse "Bing" "https://www.bing.com/images/search?view=detailv2&iss=sbi&q=imgurl:")
-            (mkReverse "TinEye" "https://www.tineye.com/search?url=")
-          ]
-        ))
+                window.open("${prefix}" + encodeURIComponent(image.src));
+              }, true);
+            '';
+        in [
+          (mkReverse "Yandex" "https://yandex.com/images/search?rpt=imageview&url=")
+          (mkReverse "Google Lens" "https://lens.google.com/uploadbyurl?url=")
+          (mkReverse "Bing" "https://www.bing.com/images/search?view=detailv2&iss=sbi&q=imgurl:")
+          (mkReverse "TinEye" "https://www.tineye.com/search?url=")
+        ]
+      ))
 
-        (mkFolder "Nuke" [
-          (mkScriptlet "Sticky Elements" /* javascript */ ''
+      (mkFolder "Nuke" [
+        (mkScriptlet "Sticky Elements"
+          /*
+          javascript
+          */
+          ''
             document.querySelectorAll("body *").forEach((element) => {
               let position = getComputedStyle(element).position;
               if (position === "fixed" || position === "sticky") element.parentNode.removeChild(element);
@@ -219,7 +246,11 @@ let
             document.body.style.overflow = "auto";
           '')
 
-          (mkScriptlet "Copy Paste Restrictions" /* javascript */ ''
+        (mkScriptlet "Copy Paste Restrictions"
+          /*
+          javascript
+          */
+          ''
             ["copy", "cut", "paste", "selectstart", "contextmenu", "dragstart"].forEach((eventName) => {
               document.addEventListener(eventName, (event) => event.stopPropagation(), true);
             });
@@ -229,47 +260,54 @@ let
               element.style.webkitUserSelect = "auto";
             });
           '')
-        ])
+      ])
 
-        (mkFolder "Toggle" (
-          let
-            mkIndication = text: /* javascript */ ''
-              {
-                let indication = document.body.appendChild(document.createElement("div"));
-                indication.textContent = ${text};
+      (mkFolder "Toggle" (
+        let
+          mkIndication = text:
+          /*
+          javascript
+          */
+          ''
+            {
+              let indication = document.body.appendChild(document.createElement("div"));
+              indication.textContent = ${text};
 
-                Object.assign(indication.style, {
-                  position: "fixed",
-                  top: "0",
-                  left: "0",
+              Object.assign(indication.style, {
+                position: "fixed",
+                top: "0",
+                left: "0",
 
-                  zIndex: "calc(infinity)",
+                zIndex: "calc(infinity)",
 
-                  padding: "8px 16px",
-                  borderRadius: "8px",
+                padding: "8px 16px",
+                borderRadius: "8px",
 
-                  colorScheme: "light dark",
-                  background: "Canvas",
-                  color: "CanvasText",
-                  font: "14px/1 system-ui",
+                colorScheme: "light dark",
+                background: "Canvas",
+                color: "CanvasText",
+                font: "14px/1 system-ui",
 
-                  pointerEvents: "none",
-                });
+                pointerEvents: "none",
+              });
 
-                indication.animate(
-                  [
-                    { opacity: 1, offset: 0.6, easing: "cubic-bezier(0.4, 0, 0.2, 1)" },
-                    { opacity: 0, offset: 1 },
-                  ],
-                  { duration: 1500, fill: "forwards" },
-                )
-                .finished
-                .then(() => indication.remove());
-              }
-            '';
-          in
-          [
-            (mkScriptlet "Password Inputs" /* javascript */ ''
+              indication.animate(
+                [
+                  { opacity: 1, offset: 0.6, easing: "cubic-bezier(0.4, 0, 0.2, 1)" },
+                  { opacity: 0, offset: 1 },
+                ],
+                { duration: 1500, fill: "forwards" },
+              )
+              .finished
+              .then(() => indication.remove());
+            }
+          '';
+        in [
+          (mkScriptlet "Password Inputs"
+            /*
+            javascript
+            */
+            ''
               let shown = false;
               document.querySelectorAll("input").forEach((input) => {
                 if (input.type === "password") {
@@ -282,17 +320,29 @@ let
                 }
               });
 
-              ${mkIndication /* js */ ''"Passwords " + (shown ? "shown" : "hidden")''}
+              ${mkIndication
+                /*
+                js
+                */
+                ''"Passwords " + (shown ? "shown" : "hidden")''}
             '')
 
-            (mkScriptlet "Design Mode" /* javascript */ ''
+          (mkScriptlet "Design Mode"
+            /*
+            javascript
+            */
+            ''
               document.designMode = document.designMode === "on" ? "off" : "on";
 
-              ${mkIndication /* js */ ''"Design mode " + document.designMode''}
+              ${mkIndication
+                /*
+                js
+                */
+                ''"Design mode " + document.designMode''}
             '')
-          ]
-        ))
-      ];
+        ]
+      ))
+    ];
 
     # SEARCH
     DefaultSearchProviderEnabled = true;
@@ -335,27 +385,25 @@ let
     # extensions.settings =
     #   extensions |> concatMapAttrs (_: extension: { ${extension.id}.incognito = true; });
   };
-in
-{
-  flake.darwinModules.helium =
-    {
-      config,
-      lib,
-      pkgs,
-      ...
-    }:
-    let
-      inherit (lib.attrsets) mapAttrsToList;
-      inherit (lib.generators) toPlist;
-      inherit (lib.meta) getExe;
-      inherit (lib.modules) mkAfter;
-      inherit (lib.strings) toJSON;
-      inherit (lib.shell) asShell;
+in {
+  flake.darwinModules.helium = {
+    config,
+    lib,
+    pkgs,
+    ...
+  }: let
+    inherit (lib.attrsets) mapAttrsToList;
+    inherit (lib.generators) toPlist;
+    inherit (lib.meta) getExe;
+    inherit (lib.modules) mkAfter;
+    inherit (lib.strings) toJSON;
+    inherit (lib.shell) asShell;
 
-      policyFiles = [
+    policyFiles =
+      [
         {
           path = "/Library/Managed Preferences/net.imput.helium.plist";
-          content = toPlist { escape = true; } policy;
+          content = toPlist {escape = true;} policy;
         }
       ]
       ++ (
@@ -363,16 +411,20 @@ in
         |> mapAttrsToList (
           id: extensionPolicy: {
             path = "/Library/Managed Preferences/net.imput.helium.extensions.${id}.plist";
-            content = toPlist { escape = true; } extensionPolicy;
+            content = toPlist {escape = true;} extensionPolicy;
           }
         )
       );
-    in
-    {
-      system.activationScripts.postActivation.text = mkAfter ''
-        ${config.system.activationScripts.helium.text}
-      '';
-      system.activationScripts.helium.text = asShell pkgs.nushell "helium-policy.nu" /* nu */ ''
+  in {
+    system.activationScripts.postActivation.text = mkAfter ''
+      ${config.system.activationScripts.helium.text}
+    '';
+    system.activationScripts.helium.text =
+      asShell pkgs.nushell "helium-policy.nu"
+      /*
+      nu
+      */
+      ''
         print "setting up helium policy..."
 
         mkdir `/Library/Managed Preferences`
@@ -387,25 +439,22 @@ in
           --user (ls --long /dev/console | get 0.user)
           ${getExe pkgs.defaultbrowser} helium)
       '';
-    };
+  };
 
-  flake.homeModules.helium =
-    {
-      lib,
-      osConfig,
-      ...
-    }:
-    let
-      inherit (lib.modules) mkIf;
-      inherit (lib.strings) toJSON;
+  flake.homeModules.helium = {
+    lib,
+    osConfig,
+    ...
+  }: let
+    inherit (lib.modules) mkIf;
+    inherit (lib.strings) toJSON;
 
-      defaultPreferences.type = "copy";
-      defaultPreferences.text = toJSON preferences;
-    in
-    {
-      # Helium.app is installed via the `helium-browser` homebrew cask
-      # (modules/apps.mod.nix); this module only writes its default Preferences.
-      files."Library/Application Support/net.imput.helium/Default/Preferences" =
-        mkIf osConfig.nixpkgs.hostPlatform.isDarwin defaultPreferences;
-    };
+    defaultPreferences.type = "copy";
+    defaultPreferences.text = toJSON preferences;
+  in {
+    # Helium.app is installed via the `helium-browser` homebrew cask
+    # (modules/apps.mod.nix); this module only writes its default Preferences.
+    files."Library/Application Support/net.imput.helium/Default/Preferences" =
+      mkIf osConfig.nixpkgs.hostPlatform.isDarwin defaultPreferences;
+  };
 }
