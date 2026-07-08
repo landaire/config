@@ -18,7 +18,6 @@
 
     hjem.url = "github:feel-co/hjem";
     hjem.inputs.nixpkgs.follows = "nixpkgs";
-    hjem.inputs.nix-darwin.follows = "nix-darwin";
 
     hjem-rum.url = "github:snugnug/hjem-rum";
     hjem-rum.inputs.nixpkgs.follows = "nixpkgs";
