@@ -39,7 +39,6 @@
         |> filter (name: name != "ublock-experimental")
       )
       ++ [
-        "TUR-0"
         "user-filters"
 
         "https://raw.githubusercontent.com/DandelionSprout/adfilt/refs/heads/master/BrowseWebsitesWithoutLoggingIn.txt"
