@@ -15,9 +15,8 @@
       build-dir = "${config.xdg.data.directory}/cargo/build"
     '';
 
-    xdg.data.files."claude/CLAUDE.md".source = ../../dotfiles/claude/CLAUDE.md;
-
-    # Claude skills under CLAUDE_CONFIG_DIR (~/.config/claude-code) set by use-xdg-dirs.
+    # Claude config under CLAUDE_CONFIG_DIR (~/.config/claude-code) set by use-xdg-dirs.
+    xdg.config.files."claude-code/CLAUDE.md".source = ../../dotfiles/claude/CLAUDE.md;
     xdg.config.files."claude-code/skills".source = ../../dotfiles/skills;
   };
 }
