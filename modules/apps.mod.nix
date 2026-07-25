@@ -92,6 +92,8 @@
           mergiraf
           opencode
           dioxus-cli
+          # needed for some codex shit
+          nodejs_26
         ];
 
         homebrew.brews = [
