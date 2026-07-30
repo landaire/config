@@ -54,27 +54,24 @@ in {
           ^chmod 0644 $entry.path
         }
 
+        let user = (ls --long /dev/console | get 0.user)
+
+        # Seed default Preferences for a fresh profile only. Helium owns this
+        # file at runtime (extension registry, pins, site permissions are HMAC
+        # tracked in it); rewriting it on activation wipes that state.
+        # Skip when nobody is at the console (user resolves to root).
+        let prefs_path = $"/Users/($user)/Library/Application Support/net.imput.helium/Default/Preferences"
+        if $user != "root" and not ($prefs_path | path exists) {
+          mkdir ($prefs_path | path dirname)
+          r#'${toJSON preferences}'# | save $prefs_path
+          ^chown -R $"($user):staff" $"/Users/($user)/Library/Application Support/net.imput.helium"
+          ^chmod 0600 $prefs_path
+        }
+
         (^/usr/bin/sudo
-          --user (ls --long /dev/console | get 0.user)
+          --user $user
           ${getExe pkgs.defaultbrowser} helium)
       '';
-  };
-
-  flake.homeModules.helium = {
-    lib,
-    osConfig,
-    ...
-  }: let
-    inherit (lib.modules) mkIf;
-    inherit (lib.strings) toJSON;
-
-    defaultPreferences.type = "copy";
-    defaultPreferences.text = toJSON preferences;
-  in {
-    # Helium.app is installed via the `helium-browser` homebrew cask
-    # (modules/apps.mod.nix); this module only writes its default Preferences.
-    files."Library/Application Support/net.imput.helium/Default/Preferences" =
-      mkIf osConfig.nixpkgs.hostPlatform.isDarwin defaultPreferences;
   };
 
   # Helium user Preferences on linux (managed policies are written by the
