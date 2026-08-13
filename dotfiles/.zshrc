@@ -225,7 +225,8 @@ if (( $+commands[brew] )); then
   include "$(brew --prefix)/share/google-cloud-sdk/completion.zsh.inc"
 fi
 
-include ~/.cargo/env
+# cargo install puts binaries in $CARGO_HOME/bin (set by use-xdg-dirs).
+export PATH="${CARGO_HOME:-$HOME/.cargo}/bin:$PATH"
 
 eval "$(atuin init zsh)"
 export PATH="$PATH:/Applications/010 Editor.app/Contents/CmdLine" #ADDED BY 010 EDITOR
