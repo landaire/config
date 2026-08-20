@@ -1,6 +1,6 @@
 { lib, ... }:
 lib.systems.darwinSystem "ix" {
   username = "lander";
-  useremail = "landaire@proton.me";
+  useremail = "hello@landaire.net";
   profile = "personal";
 }
