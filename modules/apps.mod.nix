@@ -3,65 +3,27 @@
     pkgs,
     lib,
     isPersonal,
+    inputs,
     ...
   }: let
     inherit (lib.modules) mkIf mkMerge;
+    pkgLists = import ./packages.nix { inherit pkgs inputs; };
   in {
     config = mkMerge [
       {
         # Unfree allowlist (replaces blanket allowUnfree). Extend as builds reveal more.
         allowedUnfreePackageNames = [
           "claude-code"
+          "google-cloud-sdk"
+          "dotnet-sdk"
         ];
 
         # COMMON CLI (home-owned tools omitted: nushell/zoxide/starship/atuin/jj/lazyjj/difftastic/bat/ripgrep)
-        environment.systemPackages = with pkgs; [
-          nh
-          fd
-          git
-          tealdeer
-          watchman
-          curl
-          wget
-          p7zip
-          yt-dlp
-          doggo
-          mise
-          procs
-          sd
-          skim
-          gh
-          hexyl
-          eza
-          ffmpeg
-          imagemagick
-          python3
-          rage
-          crabz
-          fzf
-          git-cliff
-          nil
-          alejandra
-          just
-          httpie
-          htop
-          bottom
-          hyperfine
-          jaq
-          neovim
-          uv
-          sccache
-          protobuf
-          delta
-          rustup
-        ];
+        environment.systemPackages = pkgLists.common;
 
         # COMMON HOMEBREW
         homebrew.brews = [
           "coreutils"
-          "pkg-config"
-          "ninja"
-          "cmake"
         ];
         homebrew.casks = [
           "wezterm"
@@ -70,36 +32,17 @@
           "firefox"
           "helium-browser"
           "jordanbaird-ice"
-          "010-editor"
           "monodraw"
           "keepingyouawake"
           "speedcrunch"
-          "imhex"
         ];
       }
 
       (mkIf isPersonal {
-        environment.systemPackages = with pkgs; [
-          sendme
-          bacon
-          kondo
-          zola
-          asciinema
-          mdbook
-          claude-code
-          codex
-          trunk
-          mergiraf
-          opencode
-          dioxus-cli
-          # needed for some codex shit
-          nodejs_26
-        ];
+        environment.systemPackages = pkgLists.personal;
 
         homebrew.brews = [
           "twitch-cli"
-          "dylibbundler"
-          "cargo-binstall"
         ];
         homebrew.casks = [
           "tailscale-app"
@@ -107,11 +50,9 @@
           "audacity"
           "chatterino"
           "DevUtils"
-          "gcloud-cli"
           "handbrake-app"
           "macfuse"
           "keycastr"
-          "dotnet-sdk"
           "spotify"
           "cleanshot"
           "proton-mail"
@@ -135,4 +76,14 @@
       })
     ];
   };
+
+  flake.homeModules.apps =
+    { pkgs, isPersonal, inputs, lib, ... }:
+    let
+      inherit (lib.lists) optionals;
+      pkgLists = import ./packages.nix { inherit pkgs inputs; };
+    in
+    {
+      packages = pkgLists.common ++ optionals isPersonal pkgLists.personal;
+    };
 }
