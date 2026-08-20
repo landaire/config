@@ -19,95 +19,124 @@
         heliumPolicy = (import ./web-browser/policy.nix { inherit lib inputs; }).policy;
         heliumPolicyJson = pkgs.writeText "helium-policy.json" (toJSON heliumPolicy);
 
-        provision = pkgs.writeShellApplication {
-          name = "richese-provision";
-          runtimeInputs = [ pkgs.coreutils ];
-          text = /* bash */ ''
-            set -euo pipefail
-            echo "== rpm-ostree layer (needs sudo; applies on reboot) =="
+        provision = pkgs.writers.writeNuBin "richese-provision" ''
+          print "== rpm-ostree layer (needs sudo; applies on reboot) =="
 
-            # Remove preinstalled bloat (verify the exact name on your image).
-            if rpm-ostree status | grep -q ' waydroid'; then
-              sudo rpm-ostree override remove waydroid || \
-                echo "waydroid override-remove failed; check the package name (ujust may help)."
-            fi
-
-            # Tailscale daemon.
-            if ! command -v tailscale >/dev/null 2>&1; then
-              sudo rpm-ostree install tailscale || true
-            fi
-
-            # Helium binary via official COPR.
-            if ! command -v helium >/dev/null 2>&1 && ! test -e /var/lib/flatpak/exports/bin/net.imput.helium; then
-              sudo bash -c 'dnf copr enable -y imput/helium && rpm-ostree install helium-bin' || \
-                echo "helium-bin COPR install failed; fall back to the AppImage from imputnet/helium-linux."
-            fi
-
-            echo "== helium managed policies =="
-            for dir in /etc/chromium/policies/managed /etc/helium/policies/managed; do
-              sudo install -d "$dir"
-              sudo install -m 0644 ${heliumPolicyJson} "$dir/policy.json"
-            done
-
-            echo "provision done. Reboot to apply rpm-ostree changes, then run: tailscale up"
-          '';
-        };
-
-        switch = pkgs.writeShellApplication {
-          name = "richese-switch";
-          runtimeInputs = [ pkgs.nix ];
-          text = /* bash */ ''
-            set -euo pipefail
-            scope="all"
-            flake="."
-            for arg in "$@"; do
-              case "$arg" in
-                --home) scope="home" ;;
-                --apps) scope="apps" ;;
-                --system) scope="system" ;;
-                --all) scope="all" ;;
-                --flake=*) flake="''${arg#--flake=}" ;;
-                *) echo "usage: richese-switch [--home|--apps|--system|--all] [--flake=REF]"; exit 2 ;;
-              esac
-            done
-
-            do_home() {
-              echo "== home (hjem standalone switch) =="
-              ${hjemCli} standalone switch --flake "$flake" --flake-attr 'hjemConfigurations."richese".manifest'
-              echo "== packages (nix profile) =="
-              nix profile install ${tools} 2>/dev/null || nix profile upgrade ${tools} 2>/dev/null || true
-              echo "== KDE panel =="
-              # Plasma panel prefs via the desktop scripting API. Needs a live
-              # Plasma session, so this no-ops on headless / pre-login runs.
-              local panel_js='var ps = panels(); for (var i = 0; i < ps.length; i++) { var p = ps[i]; p.location = "top"; p.alignment = "center"; p.hiding = "autohide"; p.floating = true; p.opacity = "adaptive"; p.lengthMode = "fit"; }'
-              local qdbus_bin=""
-              if command -v qdbus6 >/dev/null 2>&1; then qdbus_bin=qdbus6
-              elif command -v qdbus >/dev/null 2>&1; then qdbus_bin=qdbus
-              fi
-              if [ -n "$qdbus_bin" ] && "$qdbus_bin" org.kde.plasmashell >/dev/null 2>&1; then
-                # Non-fatal: a transient panel-scripting failure must not abort the switch.
-                if "$qdbus_bin" org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "$panel_js" >/dev/null 2>&1; then
-                  echo "panel configured."
-                else
-                  echo "panel scripting call failed (non-fatal)."
-                fi
-              else
-                echo "no live Plasma session; skipping panel config."
-              fi
+          # Remove preinstalled bloat (verify the exact name on your image).
+          if (try { ^rpm-ostree status | ^grep -q ' waydroid' | complete } catch { {exit_code: 1} }).exit_code == 0 {
+            try {
+              ^sudo rpm-ostree override remove waydroid
+            } catch {
+              print "waydroid override-remove failed; check the package name (ujust may help)."
             }
-            do_apps() { echo "== apps (flatpak) =="; ${flatpakSync}; }
-            do_system() { ${provision}/bin/richese-provision; }
+          }
 
-            if [ "$scope" != "home" ]; then sudo -v; fi
-            case "$scope" in
-              home) do_home ;;
-              apps) do_apps ;;
-              system) do_system ;;
-              all) do_home; do_apps; do_system ;;
-            esac
-            echo "richese-switch ($scope) complete."
-          '';
-        };
+          # Tailscale daemon.
+          if (which tailscale | is-empty) {
+            try { ^sudo rpm-ostree install tailscale } catch { }
+          }
+
+          # Helium binary via official COPR.
+          if (which helium | is-empty) and not ("/var/lib/flatpak/exports/bin/net.imput.helium" | path exists) {
+            try {
+              ^sudo bash -c 'dnf copr enable -y imput/helium && rpm-ostree install helium-bin'
+            } catch {
+              print "helium-bin COPR install failed; fall back to the AppImage from imputnet/helium-linux."
+            }
+          }
+
+          print "== helium managed policies =="
+          for dir in ["/etc/chromium/policies/managed" "/etc/helium/policies/managed"] {
+            ^sudo install -d $dir
+            ^sudo install -m 0644 ${heliumPolicyJson} $"($dir)/policy.json"
+          }
+
+          print "== sshd =="
+          if (try { ^systemctl cat sshd.service | complete } catch { {exit_code: 1} }).exit_code == 0 {
+            try { ^sudo systemctl enable --now sshd } catch { print "failed to enable sshd (non-fatal)." }
+            if (which firewall-cmd | is-not-empty) {
+              try { ^sudo firewall-cmd --permanent --add-service=ssh } catch { }
+              try { ^sudo firewall-cmd --reload } catch { }
+            }
+          } else {
+            print "sshd unit not found; installing openssh-server (reboot required)."
+            try { ^sudo rpm-ostree install openssh-server } catch { print "install openssh-server manually." }
+          }
+
+          print "provision done. Reboot to apply rpm-ostree changes, then run: tailscale up"
+        '';
+
+        switch = pkgs.writers.writeNuBin "richese-switch" ''
+          let hjem_cli = "${hjemCli}"
+          let tools = "${tools}"
+          let flatpak_sync = "${flatpakSync}"
+          let provision_bin = "${provision}/bin/richese-provision"
+
+          def do-home [flake: string] {
+            print "== home (hjem standalone switch) =="
+            ^($hjem_cli) standalone switch --flake $flake --flake-attr 'hjemConfigurations."richese".manifest'
+            print "== packages (nix profile) =="
+            if (do { ^nix profile install $tools } | complete | get exit_code) != 0 {
+              do { ^nix profile upgrade $tools } | complete | ignore
+            }
+            print "== KDE panel =="
+            # Plasma panel prefs via the desktop scripting API. Needs a live
+            # Plasma session, so this no-ops on headless / pre-login runs.
+            let panel_js = 'var ps = panels(); for (var i = 0; i < ps.length; i++) { var p = ps[i]; p.location = "top"; p.alignment = "center"; p.hiding = "autohide"; p.floating = true; p.opacity = "adaptive"; p.lengthMode = "fit"; }'
+            let qdbus_bin = if (which qdbus6 | is-not-empty) {
+              "qdbus6"
+            } else if (which qdbus | is-not-empty) {
+              "qdbus"
+            } else {
+              ""
+            }
+            # Non-fatal: a transient panel-scripting failure must not abort the switch.
+            if $qdbus_bin == "" {
+              print "no live Plasma session; skipping panel config."
+            } else if (^($qdbus_bin) org.kde.plasmashell | complete | get exit_code) != 0 {
+              print "no live Plasma session; skipping panel config."
+            } else if (^($qdbus_bin) org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript $panel_js | complete | get exit_code) == 0 {
+              print "panel configured."
+            } else {
+              print "panel scripting call failed (non-fatal)."
+            }
+          }
+
+          def do-apps [] {
+            print "== apps (flatpak) =="
+            ^($flatpak_sync)
+          }
+
+          def do-system [] {
+            ^($provision_bin)
+          }
+
+          def main [--home, --apps, --system, --all, --flake: string = "."] {
+            let scope = if $home {
+              "home"
+            } else if $apps {
+              "apps"
+            } else if $system {
+              "system"
+            } else {
+              "all"
+            }
+
+            if $scope != "home" { ^sudo -v }
+            if $scope == "home" {
+              do-home $flake
+            } else if $scope == "apps" {
+              do-apps
+            } else if $scope == "system" {
+              do-system
+            } else {
+              do-home $flake
+              do-apps
+              do-system
+            }
+            print $"richese-switch \(($scope)\) complete."
+          }
+        '';
       in
       {
         packages.richese-provision = provision;
