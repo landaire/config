@@ -73,7 +73,7 @@
 
             do_home() {
               echo "== home (hjem standalone switch) =="
-              ${hjemCli} standalone switch --flake "$flake#richese"
+              ${hjemCli} standalone switch --flake "$flake" --flake-attr 'hjemConfigurations."richese".manifest'
               echo "== packages (nix profile) =="
               nix profile install ${tools} 2>/dev/null || nix profile upgrade ${tools} 2>/dev/null || true
             }
