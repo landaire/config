@@ -1,13 +1,12 @@
 {
   flake.homeModules.git =
-    { lib, pkgs, useremail, ... }:
+    { lib, useremail, ... }:
     let
       inherit (lib.generators) toGitINI;
-      inherit (lib.lists) singleton;
     in
     {
-      packages = singleton pkgs.gitMinimal;
-
+      # git itself comes from the shared package list (apps); no explicit
+      # package here (gitMinimal would collide with full git in one buildEnv).
       # Identity + base settings. diff.* is added by difftastic.mod.nix (merges).
       xdg.config.files."git/config".generator = toGitINI;
       xdg.config.files."git/config".value = {
