@@ -52,4 +52,10 @@ in
     apply = mapAttrs (wrap "homeModules");
     description = "Home (hjem) modules.";
   };
+
+  options.flake.flatpak = mkOption {
+    type = raw;
+    default = { };
+    description = "Declarative flatpak install/remove lists for linux hosts.";
+  };
 }
