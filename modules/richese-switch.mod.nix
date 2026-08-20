@@ -15,6 +15,10 @@
         # flatpak-sync is a sibling flake-level package, read via self to avoid
         # coupling to perSystem `config` (which risks recursion in this flake).
         flatpakSync = "${self.packages.${system}.flatpak-sync}/bin/flatpak-sync";
+        # Built manifest (all sources realized). Referencing it here puts the whole
+        # source closure in richese-switch's runtime closure, so `nix run` builds
+        # the configs before the switch links them - no separate build step.
+        richeseManifest = self.packages.${system}.richese-manifest;
 
         heliumPolicy = (import ./web-browser/policy.nix { inherit lib inputs; }).policy;
         heliumPolicyJson = pkgs.writeText "helium-policy.json" (toJSON heliumPolicy);
@@ -71,10 +75,13 @@
           let tools = "${tools}"
           let flatpak_sync = "${flatpakSync}"
           let provision_bin = "${provision}/bin/richese-provision"
+          let manifest_file = "${richeseManifest}"
 
-          def do-home [flake: string] {
+          def do-home [] {
             print "== home (hjem standalone switch) =="
-            ^($hjem_cli) standalone switch --flake $flake --flake-attr 'hjemConfigurations."richese".manifest'
+            # Pass the built manifest file: its sources are already realized (they
+            # are inputs of ${richeseManifest}), so smfh actually links them.
+            ^($hjem_cli) standalone switch --manifest $manifest_file
             print "== packages (nix profile) =="
             if (do { ^nix profile install $tools } | complete | get exit_code) != 0 {
               do { ^nix profile upgrade $tools } | complete | ignore
@@ -111,7 +118,7 @@
             ^($provision_bin)
           }
 
-          def main [--home, --apps, --system, --all, --flake: string = "."] {
+          def main [--home, --apps, --system, --all] {
             let scope = if $home {
               "home"
             } else if $apps {
@@ -124,13 +131,13 @@
 
             if $scope != "home" { ^sudo -v }
             if $scope == "home" {
-              do-home $flake
+              do-home
             } else if $scope == "apps" {
               do-apps
             } else if $scope == "system" {
               do-system
             } else {
-              do-home $flake
+              do-home
               do-apps
               do-system
             }

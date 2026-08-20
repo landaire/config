@@ -132,20 +132,43 @@ in
         |> concatMap (
           fs: fs |> attrValues |> filter (f: f.enable) |> map hjem-lib.fileToJson
         );
+
+      manifest = {
+        version = 3;
+        inherit files;
+      };
+
+      # hjem standalone `switch` only nix-EVALs the manifest; it never builds the
+      # source derivations, and smfh silently skips any file whose source store
+      # path is not realized. Our sources are generated derivations
+      # (writeTOML/writeText/...), so we build the manifest as a derivation that
+      # takes every source as an input and hand hjem the built file via
+      # `--manifest`. Realizing this (e.g. as part of the switch app's closure)
+      # realizes every source into the store, so activation actually links them.
+      sourceDrvs =
+        fileSets
+        |> concatMap (
+          fs: fs |> attrValues |> filter (f: f.enable && f.source != null) |> map (f: f.source)
+        );
+      manifestFile = pkgs.runCommand "${hostName}-manifest.json" {
+        srcs = sourceDrvs;
+        value = builtins.toJSON manifest;
+        passAsFile = [ "value" ];
+      } ''cp "$valuePath" "$out"'';
     in
     {
       flake.hjemConfigurations.${hostName} = {
-        manifest = {
-          version = 3;
-          inherit files;
-        };
-        # Retained for the switch app and on-device debugging.
-        inherit eval pkgs;
+        # `manifest` is the eval-only value; `manifestFile` is the built file
+        # (sources realized) that the switch passes to `hjem ... --manifest`.
+        inherit manifest manifestFile eval pkgs;
       };
 
-      flake.packages.${system}."${hostName}-tools" = pkgs.buildEnv {
-        name = "${hostName}-tools";
-        paths = cfg.packages;
+      flake.packages.${system} = {
+        "${hostName}-tools" = pkgs.buildEnv {
+          name = "${hostName}-tools";
+          paths = cfg.packages;
+        };
+        "${hostName}-manifest" = manifestFile;
       };
     };
 }
