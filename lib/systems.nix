@@ -4,7 +4,7 @@ let
   inherit (lib.lists) concatMap filter singleton;
 
   # Home modules that must NOT attach on linux (reference osConfig or darwin paths).
-  darwinOnlyHome = [ "shadow-xcode" "helium" "shell-env-darwin" ];
+  darwinOnlyHome = [ "shadow-xcode" "helium" "shell-env-darwin" "hammerspoon" ];
   # Home modules that must NOT attach on darwin (linux-only concerns).
   linuxOnlyHome = [ "shell-env-linux" "helium-linux" ];
 in
