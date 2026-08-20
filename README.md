@@ -53,7 +53,8 @@ module:
 ## Hosts & profiles
 
 Hosts: `caladan`, `salusa`, `ix`, `rossak` (personal) and `landerb-mac2`
-(work). Each `hosts/<name>.mod.nix` is:
+(work) are nix-darwin hosts built via `lib.systems.darwinSystem`. Each
+`hosts/<name>.mod.nix` is:
 
 ```nix
 { lib, ... }:
@@ -70,6 +71,10 @@ threaded into the git/jujutsu home modules for commit identity.
 
 To add a host: create `hosts/<name>.mod.nix` as above — no other wiring needed.
 
+`richese` is different: it's a Bazzite (Linux) host built via
+`lib.systems.hjemSystem` (hjem standalone) instead of `darwinSystem` -
+see "richese (Bazzite / Linux)" below.
+
 ## Rebuilding
 
 Use the `mise` tasks (they include `sudo`, required for activation):
@@ -83,6 +88,60 @@ Each task runs `sudo nix run 'nix-darwin/master#darwin-rebuild' -- switch --flak
 
 System-level activation (writing `/Library/Managed Preferences` for Helium,
 shadow-xcode symlinks, Homebrew) runs via `system.activationScripts.postActivation.text`.
+
+## richese (Bazzite / Linux)
+
+`richese` is a Bazzite (immutable Fedora Atomic, x86_64) host. It is managed
+by `lib.systems.hjemSystem` (hjem standalone), not nix-darwin, but it reuses
+the same shared hjem home modules as the macOS hosts above.
+
+There is a single entry point for it, `richese-switch` - the darwin-rebuild
+analogue for this host. Bootstrapping a fresh machine:
+
+```
+1. Install Nix (Determinate Systems installer).
+2. Clone this repo; from its root run:  nix run 'path:.#richese-switch'
+   (full sync: home + apps + system; one sudo prompt; may stage an rpm-ostree
+   deployment that applies on reboot).
+3. Reboot; then:  tailscale up  ;  chsh to the nushell from the tools profile.
+
+Day-to-day:  nix run .#richese-switch            (full)
+             nix run .#richese-switch -- --home  (fast, no sudo)
+```
+
+`richese-switch` takes an optional scope flag:
+
+- `--all` (default): home + apps + system, in order.
+- `--home`: hjem standalone switch (links dotfiles/config) plus `nix profile`
+  install of the pinned tools env. Fast, no sudo.
+- `--apps`: syncs the declared Flatpak set.
+- `--system`: rpm-ostree changes - removes waydroid, installs tailscale and
+  `helium-bin` from its COPR, writes Helium's managed policies. Needs sudo.
+
+The switch bakes in the pinned hjem CLI, tools env, flatpak lists, and Helium
+policy, so a first run only needs Nix installed beforehand. rpm-ostree
+changes are staged and apply on reboot, since Bazzite is an atomic distro.
+
+UI apps are installed as user Flatpaks, including Sunshine (game streaming,
+`dev.lizardbyte.app.Sunshine`). Firefox (the system flatpak) and Waydroid
+(via an rpm-ostree override) are removed by the switch. Screenshots use the
+built-in KDE Spectacle rather than a separate tool. Helium's browser binary
+comes from its COPR (`helium-bin`); its config and policies are managed
+declaratively by the switch, same as on macOS.
+
+Sunshine is installed by the switch but not fully configured by it: using it
+as a streaming host needs input-capture/udev permission setup on Bazzite
+(e.g. Bazzite's `ujust` Sunshine helper, or the Flatpak's documented udev
+rules), done once after install.
+
+Not automated by the switch - install or use these as-is:
+
+- Claude desktop - use the web app instead.
+- Proton Drive - mount with rclone instead.
+- Raycast - the user's own separate project, not part of this flake.
+- macOS-only utilities with no richese equivalent here: Ice, Monodraw,
+  DevUtils, KeyCastr, KeepingYouAwake, macFUSE, Glide. 010 Editor/ImHex is
+  covered on richese by `hxy`, which the tools profile does install via Nix.
 
 ## Notes
 
