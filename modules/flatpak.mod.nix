@@ -15,6 +15,7 @@ let
     "org.kde.haruna"
     "org.filezillaproject.Filezilla"
     "io.github.mimbrero.WhatsAppDesktop"
+    "dev.lizardbyte.app.Sunshine"
   ];
 
   # System-scoped Bazzite defaults to remove.
