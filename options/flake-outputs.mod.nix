@@ -26,6 +26,12 @@ in
     description = "Darwin system configurations.";
   };
 
+  options.flake.hjemConfigurations = mkOption {
+    type = lazyAttrsOf raw;
+    default = { };
+    description = "hjem standalone home configurations (non-NixOS Linux).";
+  };
+
   options.flake.commonModules = mkOption {
     type = lazyAttrsOf deferredModule;
     default = { };

@@ -23,6 +23,9 @@
     hjem-rum.inputs.nixpkgs.follows = "nixpkgs";
     hjem-rum.inputs.hjem.follows = "hjem";
 
+    hxy.url = "github:landaire/hxy";
+    hxy.inputs.nixpkgs.follows = "nixpkgs";
+
     nix-homebrew.url = "github:zhaofengli/nix-homebrew";
     homebrew-core = {
       url = "github:homebrew/homebrew-core";
@@ -65,7 +68,10 @@
           inherit (lib.strings) hasSuffix;
         in
         {
-          systems = [ "aarch64-darwin" ];
+          systems = [
+            "aarch64-darwin"
+            "x86_64-linux"
+          ];
 
           imports = filter (hasSuffix ".mod.nix") (listFilesRecursive ./.);
         }
