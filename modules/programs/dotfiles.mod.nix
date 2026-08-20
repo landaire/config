@@ -4,10 +4,6 @@
     xdg.config.files."wezterm/wezterm.lua".source = ../../dotfiles/wezterm/wezterm.lua;
     xdg.config.files."rustfmt/rustfmt.toml".source = ../../dotfiles/rustfmt/rustfmt.toml;
 
-    files.".zshrc".source = ../../dotfiles/.zshrc;
-    files.".zprofile".source = ../../dotfiles/.zprofile;
-    files.".profile".source = ../../dotfiles/.profile;
-
     # Cargo reads config from $CARGO_HOME, which use-xdg-dirs points at
     # ${config.xdg.data.directory}/cargo. Writing to ~/.cargo would be ignored.
     xdg.data.files."cargo/config.toml".text = ''
