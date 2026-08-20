@@ -9,7 +9,12 @@
         # No shared perSystem `pkgs` is wired up yet in this flake, so import locally.
         pkgs = import inputs.nixpkgs { inherit system; };
 
-        hjemCli = "${inputs.hjem.packages.${system}.hjem}/bin/hjem";
+        # smfh is hjem's file linker. We drive it directly (like ncc's
+        # managed-files) instead of the `hjem standalone` CLI, which only
+        # nix-evals the manifest (skipping unbuilt sources) and layers on
+        # generations/state that desync. `activate` re-links missing files every
+        # run, so there is no stale-state trap.
+        smfhBin = "${inputs.hjem.packages.${system}.smfh}/bin/smfh";
         # richese-tools is a flake-level package (set by hjemSystem), read via self.
         tools = self.packages.${system}.richese-tools;
         # flatpak-sync is a sibling flake-level package, read via self to avoid
@@ -71,17 +76,23 @@
         '';
 
         switch = pkgs.writers.writeNuBin "richese-switch" ''
-          let hjem_cli = "${hjemCli}"
+          let smfh = "${smfhBin}"
           let tools = "${tools}"
           let flatpak_sync = "${flatpakSync}"
           let provision_bin = "${provision}/bin/richese-provision"
           let manifest_file = "${richeseManifest}"
 
           def do-home [] {
-            print "== home (hjem standalone switch) =="
-            # Pass the built manifest file: its sources are already realized (they
-            # are inputs of ${richeseManifest}), so smfh actually links them.
-            ^($hjem_cli) standalone switch --manifest $manifest_file
+            print "== home (link managed files) =="
+            # Drive smfh directly (ncc-style). The manifest's sources are already
+            # realized (they are inputs of ${richeseManifest}). diff --fallback
+            # applies changes vs the last-applied manifest (or links all on first
+            # run); activate then re-links anything missing, so nothing desyncs.
+            let current = ($env.HOME | path join ".local/state/richese/manifest.json")
+            mkdir ($current | path dirname)
+            ^($smfh) diff $manifest_file $current --fallback
+            ^($smfh) activate $manifest_file
+            cp --force $manifest_file $current
             print "== packages (nix profile) =="
             if (do { ^nix profile install $tools } | complete | get exit_code) != 0 {
               do { ^nix profile upgrade $tools } | complete | ignore
