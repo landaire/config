@@ -76,6 +76,24 @@
               ${hjemCli} standalone switch --flake "$flake" --flake-attr 'hjemConfigurations."richese".manifest'
               echo "== packages (nix profile) =="
               nix profile install ${tools} 2>/dev/null || nix profile upgrade ${tools} 2>/dev/null || true
+              echo "== KDE panel =="
+              # Plasma panel prefs via the desktop scripting API. Needs a live
+              # Plasma session, so this no-ops on headless / pre-login runs.
+              local panel_js='var ps = panels(); for (var i = 0; i < ps.length; i++) { var p = ps[i]; p.location = "top"; p.alignment = "center"; p.hiding = "autohide"; p.floating = true; p.opacity = "adaptive"; p.lengthMode = "fit"; }'
+              local qdbus_bin=""
+              if command -v qdbus6 >/dev/null 2>&1; then qdbus_bin=qdbus6
+              elif command -v qdbus >/dev/null 2>&1; then qdbus_bin=qdbus
+              fi
+              if [ -n "$qdbus_bin" ] && "$qdbus_bin" org.kde.plasmashell >/dev/null 2>&1; then
+                # Non-fatal: a transient panel-scripting failure must not abort the switch.
+                if "$qdbus_bin" org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "$panel_js" >/dev/null 2>&1; then
+                  echo "panel configured."
+                else
+                  echo "panel scripting call failed (non-fatal)."
+                fi
+              else
+                echo "no live Plasma session; skipping panel config."
+              fi
             }
             do_apps() { echo "== apps (flatpak) =="; ${flatpakSync}; }
             do_system() { ${provision}/bin/richese-provision; }
