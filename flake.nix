@@ -10,6 +10,11 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
 
+    # Bleeding-edge source for the handful of fast-moving packages that break on
+    # the unstable cadence (see overlays/master.nix). The base system stays on
+    # the cached unstable channel above.
+    nixpkgs-master.url = "github:NixOS/nixpkgs/master";
+
     flake-parts.url = "github:hercules-ci/flake-parts";
     flake-parts.inputs.nixpkgs-lib.follows = "nixpkgs";
 

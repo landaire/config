@@ -87,6 +87,7 @@ in
       ];
       pkgs = import self.inputs.nixpkgs {
         inherit system;
+        overlays = [ (import ../overlays/master.nix self.inputs) ];
         config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) allowedUnfree;
       };
 

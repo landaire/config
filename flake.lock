@@ -245,6 +245,22 @@
         "type": "github"
       }
     },
+    "nixpkgs-master": {
+      "locked": {
+        "lastModified": 1787343808,
+        "narHash": "sha256-dJ3RnstxxK1UlYEsYiGFCXQae1kAI6BtxzKPaFxNnLI=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "06bbf4c8b21702981ad6017acfdb13398b6e18db",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "master",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "flake-parts": "flake-parts",
@@ -256,6 +272,7 @@
         "nix-darwin": "nix-darwin_2",
         "nix-homebrew": "nix-homebrew",
         "nixpkgs": "nixpkgs",
+        "nixpkgs-master": "nixpkgs-master",
         "themes": "themes",
         "ublock": "ublock"
       }
