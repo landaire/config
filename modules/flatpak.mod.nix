@@ -13,6 +13,7 @@ let
     "dev.zed.Zed"
     "org.wezfurlong.wezterm"
     "org.kde.haruna"
+    "org.rncbc.qpwgraph"
     "org.filezillaproject.Filezilla"
     "io.github.mimbrero.WhatsAppDesktop"
     "dev.lizardbyte.app.Sunshine"
