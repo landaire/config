@@ -21,6 +21,22 @@ description = "Rebuild nix-darwin configuration for rossak"
 run = "sudo nix run 'nix-darwin/master#darwin-rebuild' -- switch --flake 'path:.#rossak'"
 
 
+[tasks."rebuild:richese"]
+description = "richese: full switch (home + apps + system)"
+run = "nix run .#richese-switch -- --all"
+
+[tasks."rebuild:richese:home"]
+description = "richese: link managed home files + user packages (no sudo)"
+run = "nix run .#richese-switch -- --home"
+
+[tasks."rebuild:richese:apps"]
+description = "richese: sync flatpaks"
+run = "nix run .#richese-switch -- --apps"
+
+[tasks."rebuild:richese:system"]
+description = "richese: rpm-ostree provision + managed policies (sudo)"
+run = "nix run .#richese-switch -- --system"
+
 [tasks.rebuild]
 description = "List available rebuild targets"
 run = """
