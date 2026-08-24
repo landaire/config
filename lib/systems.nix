@@ -6,7 +6,7 @@ let
   # Home modules that must NOT attach on linux (reference osConfig or darwin paths).
   darwinOnlyHome = [ "shadow-xcode" "helium" "shell-env-darwin" "hammerspoon" ];
   # Home modules that must NOT attach on darwin (linux-only concerns).
-  linuxOnlyHome = [ "shell-env-linux" "helium-linux" "apps" ];
+  linuxOnlyHome = [ "shell-env-linux" "helium-linux" "apps" "audio" ];
 in
 {
   # darwinSystem hostName { username, useremail, profile } -> registers
