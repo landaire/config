@@ -45,12 +45,27 @@
             try { ^sudo rpm-ostree install tailscale } catch { }
           }
 
-          # Helium binary via official COPR.
+          # Helium binary via official COPR. Write the repo file directly rather
+          # than `dnf copr enable`; the dnf copr plugin is not reliable on
+          # rpm-ostree, and chaining it with `&&` hid install failures.
           if (which helium | is-empty) and not ("/var/lib/flatpak/exports/bin/net.imput.helium" | path exists) {
-            try {
-              ^sudo bash -c 'dnf copr enable -y imput/helium && rpm-ostree install helium-bin'
-            } catch {
-              print "helium-bin COPR install failed; fall back to the AppImage from imputnet/helium-linux."
+            let repo = "/etc/yum.repos.d/_copr_imput-helium.repo"
+            if not ($repo | path exists) {
+              let ver = (^rpm -E %fedora | str trim)
+              let url = $"https://copr.fedorainfracloud.org/coprs/imput/helium/repo/fedora-($ver)/imput-helium-fedora.repo"
+              let dl = (^sudo curl -fsSL $url -o $repo | complete)
+              if $dl.exit_code != 0 {
+                print $"failed to fetch helium COPR repo file: ($dl.stderr)"
+              }
+            }
+            if ($repo | path exists) {
+              let inst = (^sudo rpm-ostree install --idempotent helium-bin | complete)
+              if $inst.exit_code != 0 {
+                print $"helium-bin install failed: ($inst.stderr)"
+                print "fall back to the AppImage from imputnet/helium-linux."
+              } else {
+                print "helium-bin layered; reboot to use it."
+              }
             }
           }
 
@@ -94,9 +109,11 @@
             ^($smfh) activate $manifest_file
             cp --force $manifest_file $current
             print "== packages (nix profile) =="
-            if (do { ^nix profile install $tools } | complete | get exit_code) != 0 {
-              do { ^nix profile upgrade $tools } | complete | ignore
-            }
+            # Installing by store path cannot upgrade in place and accumulates
+            # duplicate entries, so remove any prior richese-tools first, then
+            # install the current one.
+            do { ^nix profile remove --regex 'richese-tools.*' } | complete | ignore
+            do { ^nix profile install $tools } | complete | ignore
             print "== KDE panel =="
             # Plasma panel prefs via the desktop scripting API. Needs a live
             # Plasma session, so this no-ops on headless / pre-login runs.
