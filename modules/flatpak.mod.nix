@@ -16,12 +16,14 @@ let
     "org.rncbc.qpwgraph"
     "org.filezillaproject.Filezilla"
     "io.github.mimbrero.WhatsAppDesktop"
-    "dev.lizardbyte.app.Sunshine"
   ];
 
-  # System-scoped Bazzite defaults to remove.
+  # Flatpaks to uninstall. Sunshine now ships in the bazzite-nix image as the
+  # Sunshine RPM (udev rules + cap_sys_admin/cap_sys_nice on the binary), which
+  # the sandboxed flatpak cannot provide; the flatpak is redundant.
   remove = [
     "org.mozilla.firefox"
+    "dev.lizardbyte.app.Sunshine"
   ];
 in
 {
@@ -44,10 +46,14 @@ in
         print "ensuring flathub remote (user)..."
         ^flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
 
-        print "installing declared apps (user)..."
+        print "installing/updating declared apps (user)..."
         let install_apps = [${installListNu}]
         for app in $install_apps {
-          if (try { ^flatpak info --user $app | complete } catch { {exit_code: 1} }).exit_code != 0 {
+          # Update if already present, install otherwise. The old install-only
+          # guard left apps frozen at their first-installed version forever.
+          if (try { ^flatpak info --user $app | complete } catch { {exit_code: 1} }).exit_code == 0 {
+            ^flatpak update --user --noninteractive $app
+          } else {
             ^flatpak install --user --noninteractive --or-update flathub $app
           }
         }
@@ -55,6 +61,13 @@ in
         print "removing declared bloat (system + user)..."
         let remove_apps = [${removeListNu}]
         for app in $remove_apps {
+          # Do not remove the Sunshine flatpak until its image-baked RPM
+          # replacement is on PATH, so a sync run before the new image is
+          # deployed cannot leave the host with no Sunshine.
+          if $app == "dev.lizardbyte.app.Sunshine" and (which sunshine | is-empty) {
+            print "keeping Sunshine flatpak: native RPM not deployed yet."
+            continue
+          }
           if (try { ^flatpak info --system $app | complete } catch { {exit_code: 1} }).exit_code == 0 {
             try { ^sudo flatpak uninstall --system --noninteractive $app } catch { print "system uninstall failed (non-fatal)." }
           }

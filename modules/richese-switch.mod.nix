@@ -29,45 +29,10 @@
         heliumPolicyJson = pkgs.writeText "helium-policy.json" (toJSON heliumPolicy);
 
         provision = pkgs.writers.writeNuBin "richese-provision" ''
-          print "== rpm-ostree layer (needs sudo; applies on reboot) =="
-
-          # Remove preinstalled bloat (verify the exact name on your image).
-          if (try { ^rpm-ostree status | ^grep -q ' waydroid' | complete } catch { {exit_code: 1} }).exit_code == 0 {
-            try {
-              ^sudo rpm-ostree override remove waydroid
-            } catch {
-              print "waydroid override-remove failed; check the package name (ujust may help)."
-            }
-          }
-
-          # Tailscale daemon.
-          if (which tailscale | is-empty) {
-            try { ^sudo rpm-ostree install tailscale } catch { }
-          }
-
-          # Helium binary via official COPR. Write the repo file directly rather
-          # than `dnf copr enable`; the dnf copr plugin is not reliable on
-          # rpm-ostree, and chaining it with `&&` hid install failures.
-          if (which helium | is-empty) and not ("/var/lib/flatpak/exports/bin/net.imput.helium" | path exists) {
-            let repo = "/etc/yum.repos.d/_copr_imput-helium.repo"
-            if not ($repo | path exists) {
-              let ver = (^rpm -E %fedora | str trim)
-              let url = $"https://copr.fedorainfracloud.org/coprs/imput/helium/repo/fedora-($ver)/imput-helium-fedora.repo"
-              let dl = (^sudo curl -fsSL $url -o $repo | complete)
-              if $dl.exit_code != 0 {
-                print $"failed to fetch helium COPR repo file: ($dl.stderr)"
-              }
-            }
-            if ($repo | path exists) {
-              let inst = (^sudo rpm-ostree install --idempotent helium-bin | complete)
-              if $inst.exit_code != 0 {
-                print $"helium-bin install failed: ($inst.stderr)"
-                print "fall back to the AppImage from imputnet/helium-linux."
-              } else {
-                print "helium-bin layered; reboot to use it."
-              }
-            }
-          }
+          # Packages that need OS integration (Helium, Sunshine, tailscale,
+          # openssh-server) and waydroid removal all live in the bazzite-nix
+          # image, not here. This step only applies host config that is not
+          # baked into the image.
 
           print "== helium managed policies =="
           for dir in ["/etc/chromium/policies/managed" "/etc/helium/policies/managed"] {
@@ -75,19 +40,15 @@
             ^sudo install -m 0644 ${heliumPolicyJson} $"($dir)/policy.json"
           }
 
-          print "== sshd =="
-          if (try { ^systemctl cat sshd.service | complete } catch { {exit_code: 1} }).exit_code == 0 {
-            try { ^sudo systemctl enable --now sshd } catch { print "failed to enable sshd (non-fatal)." }
-            if (which firewall-cmd | is-not-empty) {
-              try { ^sudo firewall-cmd --permanent --add-service=ssh } catch { }
-              try { ^sudo firewall-cmd --reload } catch { }
-            }
-          } else {
-            print "sshd unit not found; installing openssh-server (reboot required)."
-            try { ^sudo rpm-ostree install openssh-server } catch { print "install openssh-server manually." }
+          print "== ssh firewall =="
+          # sshd itself is enabled in the image; only opening the port is host
+          # state (firewalld config lives outside the image).
+          if (which firewall-cmd | is-not-empty) {
+            try { ^sudo firewall-cmd --permanent --add-service=ssh } catch { }
+            try { ^sudo firewall-cmd --reload } catch { }
           }
 
-          print "provision done. Reboot to apply rpm-ostree changes, then run: tailscale up"
+          print "provision done. If tailscale is not up yet, run: tailscale up"
         '';
 
         switch = pkgs.writers.writeNuBin "richese-switch" ''

@@ -101,8 +101,8 @@ analogue for this host. Bootstrapping a fresh machine:
 ```
 1. Install Nix (Determinate Systems installer).
 2. Clone this repo; from its root run:  nix run 'path:.#richese-switch'
-   (full sync: home + apps + system; one sudo prompt; may stage an rpm-ostree
-   deployment that applies on reboot).
+   (full sync: home + apps + system; one sudo prompt; no rpm-ostree staging -
+   OS packages/services come from the bazzite-nix image).
 3. Reboot; then:  tailscale up  ;  chsh to the nushell from the tools profile.
 
 Day-to-day:  nix run .#richese-switch            (full)
@@ -115,24 +115,26 @@ Day-to-day:  nix run .#richese-switch            (full)
 - `--home`: hjem standalone switch (links dotfiles/config) plus `nix profile`
   install of the pinned tools env. Fast, no sudo.
 - `--apps`: syncs the declared Flatpak set.
-- `--system`: rpm-ostree changes - removes waydroid, installs tailscale and
-  `helium-bin` from its COPR, writes Helium's managed policies. Needs sudo.
+- `--system`: host config not baked into the image - writes Helium's managed
+  policies and opens the ssh firewall port. Needs sudo.
 
 The switch bakes in the pinned hjem CLI, tools env, flatpak lists, and Helium
-policy, so a first run only needs Nix installed beforehand. rpm-ostree
-changes are staged and apply on reboot, since Bazzite is an atomic distro.
+policy, so a first run only needs Nix installed beforehand. It makes no
+rpm-ostree changes itself; OS-level packages and services come from the
+bazzite-nix image, which is rebased/rebooted separately (Bazzite is atomic).
 
-UI apps are installed as user Flatpaks, including Sunshine (game streaming,
-`dev.lizardbyte.app.Sunshine`). Firefox (the system flatpak) and Waydroid
-(via an rpm-ostree override) are removed by the switch. Screenshots use the
-built-in KDE Spectacle rather than a separate tool. Helium's browser binary
-comes from its COPR (`helium-bin`); its config and policies are managed
-declaratively by the switch, same as on macOS.
+Binaries that need OS integration ship baked into the bazzite-nix image
+(`ghcr.io/landaire/bazzite-nix`), not layered by the switch: Helium
+(`helium-bin`) and Sunshine (game streaming). Baking them keeps `bootc
+upgrade` working and lets the Sunshine RPM apply its udev rules and
+`cap_sys_admin`/`cap_sys_nice` file capabilities, which the sandboxed flatpak
+cannot. Helium's config and policies are still managed declaratively by the
+switch, same as on macOS.
 
-Sunshine is installed by the switch but not fully configured by it: using it
-as a streaming host needs input-capture/udev permission setup on Bazzite
-(e.g. Bazzite's `ujust` Sunshine helper, or the Flatpak's documented udev
-rules), done once after install.
+Other UI apps are installed as user Flatpaks. The switch also uninstalls the
+Firefox system flatpak and the now-redundant Sunshine flatpak (the latter only
+once the native RPM is on PATH). Waydroid is removed and sshd/tailscaled are
+enabled in the image build. Screenshots use the built-in KDE Spectacle.
 
 Not automated by the switch - install or use these as-is:
 
