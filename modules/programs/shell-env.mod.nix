@@ -24,6 +24,18 @@
         $env.PATH = $env.PATH | prepend ["/opt/homebrew/bin" "/opt/homebrew/sbin"]
       '';
 
+      # Bootstrap the session variables for zsh itself. hjem only *generates*
+      # environment.loadEnv ("a POSIX compliant shell script that needs to be
+      # sourced where needed") -- it never installs it anywhere. hjem-rum's
+      # nushell module also emits them as a `load-env` inside config.nu, but
+      # that is circular on darwin: nushell locates config.nu via
+      # XDG_CONFIG_HOME, and without it falls back to
+      # ~/Library/Application Support/nushell and ignores ~/.config/nushell
+      # entirely. .zshenv runs before .zshrc execs nushell, breaking the cycle.
+      files.".zshenv".text = ''
+        . ${config.environment.loadEnv}
+      '';
+
       files.".zshrc".source = ../../dotfiles/zshrc-stub.zsh;
     };
 

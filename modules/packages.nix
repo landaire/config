@@ -5,7 +5,7 @@ let
 in
 {
   common = with pkgs; [
-    nh fd git tealdeer watchman curl wget p7zip yt-dlp doggo mise procs sd skim
+    nh fd git tealdeer watchman curl wget p7zip yt-dlp doggo mise procs sd
     gh hexyl eza ffmpeg imagemagick python3 rage crabz fzf git-cliff nil alejandra
     just httpie htop bottom hyperfine jaq neovim uv sccache protobuf delta rustup
     # former homebrew brews (cross-platform):

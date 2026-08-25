@@ -24,6 +24,12 @@ config.window_frame = {
 }
 
 config.automatically_reload_config = true
+config.cursor_blink_rate = 0
+
+-- The parser waits this long for more pane output before updating the
+-- terminal. Interactive echo has no follow-up write, so the wait is always
+-- spent in full; measured about 1ms of key-to-photon latency on this machine.
+config.mux_output_parser_coalesce_delay_ms = 0
 
 config.keys = {
   -- ... add these new entries to your config.keys table
