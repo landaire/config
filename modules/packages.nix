@@ -8,6 +8,7 @@ in
     nh fd git tealdeer watchman curl wget p7zip yt-dlp doggo mise procs sd
     gh hexyl eza ffmpeg imagemagick python3 rage crabz fzf git-cliff nil alejandra
     just httpie htop bottom hyperfine jaq neovim uv sccache protobuf delta rustup
+    zellij 
     # former homebrew brews (cross-platform):
     cmake ninja pkg-config cargo-binstall
     # build toolchain for buck2 projects:
