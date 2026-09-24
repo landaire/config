@@ -2,8 +2,10 @@
 {
   flake.darwinModules.home = inputs.hjem.darwinModules.hjem;
 
+  flake.nixosModules.home = inputs.hjem.nixosModules.hjem;
+
   flake.commonModules.home =
-    { lib, useremail, ... }:
+    { lib, useremail, isPersonal, ... }:
     let
       inherit (lib.lists) singleton;
       inherit (lib.modules) mkAliasOptionModule;
@@ -11,7 +13,7 @@
     {
       imports = singleton <| mkAliasOptionModule [ "home" ] [ "hjem" ];
 
-      home.specialArgs = { inherit lib useremail; };
+      home.specialArgs = { inherit lib useremail isPersonal; };
       home.extraModules = singleton inputs.hjem-rum.hjemModules.hjem-rum;
       home.clobberByDefault = true;
     };

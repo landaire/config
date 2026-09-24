@@ -7,6 +7,12 @@ let
   darwinOnlyHome = [ "shadow-xcode" "helium" "shell-env-darwin" "hammerspoon" ];
   # Home modules that must NOT attach on darwin (linux-only concerns).
   linuxOnlyHome = [ "shell-env-linux" "helium-linux" "apps" "audio" ];
+  # Home modules that only apply to a NixOS host (richese is standalone hjem on
+  # Bazzite and manages its own shell startup files).
+  nixosOnlyHome = [ "shell-env-nixos" ];
+  # Home modules that assume a graphical session, dropped on headless hosts.
+  # `apps` goes too: NixOS installs the same lists via systemPackages.
+  desktopOnlyHome = [ "helium-linux" "apps" "audio" ];
 in
 {
   # darwinSystem hostName { username, useremail, profile } -> registers
@@ -59,7 +65,64 @@ in
             # hjem (darwinModules.home) supplies `home`; an entry here enables the
             # user (enable defaults true) and attaches every home module to them.
             home.users.${username} = { };
-            home.extraModules = attrValues (removeAttrs self.homeModules linuxOnlyHome);
+            home.extraModules = attrValues (
+              removeAttrs self.homeModules (linuxOnlyHome ++ nixosOnlyHome)
+            );
+          };
+      };
+    };
+
+  # nixosSystem hostName { username, useremail, profile, hardware } -> registers
+  # flake.nixosConfigurations.<hostName>. `hardware` is the host's generated
+  # hardware-configuration.nix.
+  nixosSystem =
+    hostName:
+    {
+      username,
+      useremail,
+      profile,
+      hardware,
+    }:
+    {
+      flake.nixosConfigurations.${hostName} = self.inputs.nixpkgs.lib.nixosSystem {
+        specialArgs = {
+          inherit
+            lib
+            self
+            username
+            useremail
+            hostName
+            profile
+            ;
+          inputs = self.inputs;
+          isPersonal = profile == "personal";
+        };
+
+        modules =
+          attrValues self.commonModules
+          ++ attrValues self.nixosModules
+          ++ singleton hardware
+          ++ singleton {
+            networking.hostName = hostName;
+
+            nix.settings.trusted-users = [ "root" username ];
+
+            system.configurationRevision = self.rev or self.dirtyRev or null;
+
+            # hjem derives each home user's `directory` from users.users.<name>.home,
+            # same as the darwin base. Passwords are deliberately absent: with the
+            # default users.mutableUsers the ones set at install time survive, and
+            # nothing secret has to live in this repo.
+            users.users.${username} = {
+              isNormalUser = true;
+              home = "/home/${username}";
+              extraGroups = [ "wheel" ];
+            };
+
+            home.users.${username} = { };
+            home.extraModules = attrValues (
+              removeAttrs self.homeModules (darwinOnlyHome ++ desktopOnlyHome)
+            );
           };
       };
     };
@@ -112,7 +175,7 @@ in
         modules =
           [ (hjemSrc + "/modules/common/user.nix") ]
           ++ [ self.inputs.hjem-rum.hjemModules.hjem-rum ]
-          ++ attrValues (removeAttrs self.homeModules darwinOnlyHome)
+          ++ attrValues (removeAttrs self.homeModules (darwinOnlyHome ++ nixosOnlyHome))
           ++ [
             {
               inherit directory;

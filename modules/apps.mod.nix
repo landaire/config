@@ -78,6 +78,25 @@
     ];
   };
 
+  # The shared lists go through systemPackages, as on darwin, so they are on
+  # root's PATH too. hjem installs its own `programs.*` tools separately into
+  # the user profile on both platforms.
+  flake.nixosModules.apps =
+    { pkgs, isPersonal, inputs, lib, ... }:
+    let
+      inherit (lib.lists) optionals;
+      pkgLists = import ./packages.nix { inherit pkgs inputs; };
+    in
+    {
+      allowedUnfreePackageNames = [
+        "claude-code"
+        "google-cloud-sdk"
+        "dotnet-sdk"
+      ];
+
+      environment.systemPackages = pkgLists.common ++ optionals isPersonal pkgLists.personal;
+    };
+
   flake.homeModules.apps =
     { pkgs, isPersonal, inputs, lib, ... }:
     let

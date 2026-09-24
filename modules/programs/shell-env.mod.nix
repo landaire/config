@@ -39,6 +39,19 @@
       files.".zshrc".source = ../../dotfiles/zshrc-stub.zsh;
     };
 
+  # NIXOS: bootstrap the session variables for shells other than nushell. hjem
+  # only generates environment.loadEnv; without sourcing it, EDITOR/CARGO_HOME/
+  # XDG_* exist only inside an interactive nushell, so `ssh junction <cmd>` would
+  # use the wrong paths. /etc/zshenv execs nushell before this runs on an
+  # interactive login, so it only takes effect where nushell is not involved.
+  flake.homeModules.shell-env-nixos =
+    { config, ... }:
+    {
+      files.".zshenv".text = ''
+        . ${config.environment.loadEnv}
+      '';
+    };
+
   # LINUX: KDE/Wayland clipboard + disk listing.
   flake.homeModules.shell-env-linux = {
     programs.nushell.aliases = {
