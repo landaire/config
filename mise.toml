@@ -21,6 +21,13 @@ description = "Rebuild nix-darwin configuration for rossak"
 run = "sudo nix run 'nix-darwin/master#darwin-rebuild' -- switch --flake 'path:.#rossak'"
 
 
+[tasks."rebuild:junction"]
+description = "junction: sync this tree to the server and switch (builds on the host)"
+run = """
+tar czf - --exclude=result --exclude=.jj . \
+  | ssh root@junction.local 'rm -rf /root/config && mkdir -p /root/config && tar xzf - -C /root/config && nixos-rebuild switch --flake /root/config#junction'
+"""
+
 [tasks."rebuild:richese"]
 description = "richese: full switch (home + apps + system)"
 run = "nix run .#richese-switch -- --all"
@@ -44,4 +51,6 @@ echo "Available rebuild targets:"
 echo "  mise run rebuild:caladan  - Rebuild for caladan"
 echo "  mise run rebuild:salusa   - Rebuild for salusa"
 echo "  mise run rebuild:work     - Rebuild for work machine"
+echo "  mise run rebuild:junction - Rebuild the nixos server"
+echo "  mise run rebuild:richese  - Rebuild richese"
 """

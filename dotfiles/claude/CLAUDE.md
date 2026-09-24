@@ -43,6 +43,11 @@ Most of these pertain to Rust but similar concepts may apply to other languages
 - Do not include unnecessary details. No, "The X describes the Y" type phrases or "caveats" unless asked for it.
 - Commit messages should be short. Do not include unnecessary details in the longform commit message. Generally the commit details should just not even be included unless there is necessary context behind a change. Otherwise the commit title should speak for itself.
 
+### Tests
+
+- Snapshot tests should be preferred in scenarios where data is being deserialized or parsed. In Rust, use a framework like Insta.
+- Tautological tests considered harmful.
+
 ## Commit Style
 
 - Changes should be rolled into one commit where it makes sense, as if sending patches to Phabricator (stacked diffs) or Gerrit.
