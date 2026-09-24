@@ -1,5 +1,5 @@
 {
-  flake.darwinModules.nix =
+  flake.commonModules.nix =
     { lib, ... }:
     let
       inherit (lib.modules) mkDefault;
