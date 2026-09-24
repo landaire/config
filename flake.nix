@@ -31,6 +31,10 @@
     hxy.url = "github:landaire/hxy";
     hxy.inputs.nixpkgs.follows = "nixpkgs";
 
+    # Remote execution backend for buck2 (see modules/buck2-remote-execution).
+    # Deliberately not following our nixpkgs: it pins its own rust toolchain.
+    nativelink.url = "github:TraceMachina/nativelink";
+
     nix-homebrew.url = "github:zhaofengli/nix-homebrew";
     homebrew-core = {
       url = "github:homebrew/homebrew-core";
