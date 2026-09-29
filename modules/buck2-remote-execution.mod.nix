@@ -15,12 +15,19 @@
 
       gib = n: n * 1024 * 1024 * 1024;
 
+      # evict_bytes sets a low watermark: on hitting max_bytes, evict down to
+      # max_bytes - evict_bytes rather than to the limit exactly, which would
+      # thrash once the store is full. No max_seconds, so entries are kept
+      # until the size limit forces them out.
       fsStore = name: bytes: {
         inherit name;
         filesystem = {
           content_path = "${stateDir}/${name}/content";
           temp_path = "${stateDir}/${name}/tmp";
-          eviction_policy.max_bytes = bytes;
+          eviction_policy = {
+            max_bytes = bytes;
+            evict_bytes = bytes / 10;
+          };
         };
       };
 
@@ -56,7 +63,10 @@
               fast.filesystem = {
                 content_path = "${stateDir}/worker/content";
                 temp_path = "${stateDir}/worker/tmp";
-                eviction_policy.max_bytes = gib 100;
+                eviction_policy = {
+                  max_bytes = gib 100;
+                  evict_bytes = gib 10;
+                };
               };
               # Sharing the client-facing CAS makes worker output immediately
               # visible to clients.
