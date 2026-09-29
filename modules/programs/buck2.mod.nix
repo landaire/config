@@ -17,11 +17,18 @@
     mkIf isPersonal {
       files.".buckconfig.d/10-remote-execution" = {
         generator = toINI { };
-        value.buck2_re_client = {
-          engine_address = endpoint;
-          action_cache_address = endpoint;
-          cas_address = endpoint;
-          tls = false;
+        value = {
+          buck2_re_client = {
+            engine_address = endpoint;
+            action_cache_address = endpoint;
+            cas_address = endpoint;
+            tls = false;
+          };
+
+          # Upload results for any action that does not decide for itself.
+          # Cache *reads* cannot be enabled from here: they come from the
+          # execution platform, which is per project.
+          buck2.default_allow_cache_upload = true;
         };
       };
     };
