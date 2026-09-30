@@ -33,6 +33,16 @@
       users.users.${username}.openssh.authorizedKeys.keys = authorizedKeys;
     };
 
+  # Stable names on every host without depending on mDNS, which Windows
+  # resolves unreliably, or on a DHCP lease. Joining the tailnet is a one-time
+  # `tailscale up` that cannot be automated from the config.
+  flake.nixosModules.tailscale = {
+    services.tailscale = {
+      enable = true;
+      openFirewall = true;
+    };
+  };
+
   # Publish <hostName>.local so clients reach this box by name instead of a
   # DHCP address. macOS and Windows 10+ resolve mDNS natively; nssmdns4 lets
   # this host resolve other .local names too.

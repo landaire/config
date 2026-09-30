@@ -19,7 +19,7 @@
         ];
 
         # COMMON CLI (home-owned tools omitted: nushell/zoxide/starship/atuin/jj/lazyjj/difftastic/bat/ripgrep)
-        environment.systemPackages = pkgLists.common;
+        environment.systemPackages = pkgLists.common ++ pkgLists.workstation;
 
         # COMMON HOMEBREW
         homebrew.brews = [
@@ -78,9 +78,9 @@
     ];
   };
 
-  # The shared lists go through systemPackages, as on darwin, so they are on
-  # root's PATH too. hjem installs its own `programs.*` tools separately into
-  # the user profile on both platforms.
+  # The server receives shared developer/admin tools through systemPackages,
+  # but not the workstation-only package set. hjem installs its own
+  # `programs.*` tools separately into the user profile on both platforms.
   flake.nixosModules.apps =
     { pkgs, isPersonal, inputs, lib, ... }:
     let
@@ -104,6 +104,6 @@
       pkgLists = import ./packages.nix { inherit pkgs inputs; };
     in
     {
-      packages = pkgLists.common ++ optionals isPersonal pkgLists.personal;
+      packages = pkgLists.common ++ pkgLists.workstation ++ optionals isPersonal pkgLists.personal;
     };
 }

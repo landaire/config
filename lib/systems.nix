@@ -12,7 +12,7 @@ let
   nixosOnlyHome = [ "shell-env-nixos" ];
   # Home modules that assume a graphical session, dropped on headless hosts.
   # `apps` goes too: NixOS installs the same lists via systemPackages.
-  desktopOnlyHome = [ "helium-linux" "apps" "audio" ];
+  desktopOnlyHome = [ "helium-linux" "apps" "audio" "zed" ];
 in
 {
   # darwinSystem hostName { username, useremail, profile } -> registers

@@ -1,4 +1,4 @@
-# Shared CLI tool lists, consumed by darwin systemPackages and richese home packages.
+# CLI tool lists for workstations and the NixOS build server.
 { pkgs, inputs }:
 let
   system = pkgs.stdenv.hostPlatform.system;
@@ -17,8 +17,11 @@ in
     google-cloud-sdk dotnet-sdk
     # oh-my-pi
     omp
-  ]
-  ++ [ inputs.hxy.packages.${system}.default ];
+  ];
+
+  # hxy is a desktop hex editor. Keep it on workstation profiles, but do not
+  # include it in the headless NixOS server's system profile.
+  workstation = [ inputs.hxy.packages.${system}.default ];
 
   personal = with pkgs; [
     sendme bacon kondo zola asciinema mdbook claude-code codex trunk mergiraf
