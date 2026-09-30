@@ -85,7 +85,17 @@
     { pkgs, isPersonal, inputs, lib, ... }:
     let
       inherit (lib.lists) optionals;
-      pkgLists = import ./packages.nix { inherit pkgs inputs; };
+      # Trunk 0.21.14's vendored libdeflate-sys uses x86 target attributes that
+      # GCC 16 rejects. Nix's Rust hook sets HOST_CC at build time, but cc-rs
+      # gives this target-specific compiler higher precedence. Keep the GCC 15
+      # workaround limited to Trunk on this NixOS server; workstation package
+      # sets keep their default compiler.
+      pkgLists = import ./packages.nix {
+        inherit pkgs inputs;
+        trunk = pkgs.trunk.overrideAttrs (_: {
+          env.CC_x86_64_unknown_linux_gnu = "${pkgs.gcc15Stdenv.cc}/bin/cc";
+        });
+      };
     in
     {
       allowedUnfreePackageNames = [
