@@ -14,7 +14,7 @@
         # nix-evals the manifest (skipping unbuilt sources) and layers on
         # generations/state that desync. `activate` re-links missing files every
         # run, so there is no stale-state trap.
-        smfhBin = "${inputs.hjem.packages.${system}.smfh}/bin/smfh";
+        smfhBin = "${pkgs.smfh}/bin/smfh";
         # richese-tools is a flake-level package (set by hjemSystem), read via self.
         tools = self.packages.${system}.richese-tools;
         # flatpak-sync is a sibling flake-level package, read via self to avoid
