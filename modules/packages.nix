@@ -15,6 +15,8 @@ in
     buck2 reindeer
     # gcloud + dotnet (were casks):
     google-cloud-sdk dotnet-sdk
+    # oh-my-pi
+    omp
   ]
   ++ [ inputs.hxy.packages.${system}.default ];
 
