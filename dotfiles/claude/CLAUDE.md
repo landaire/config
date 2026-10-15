@@ -47,6 +47,12 @@ Most of these pertain to Rust but similar concepts may apply to other languages
 
 - Snapshot tests should be preferred in scenarios where data is being deserialized or parsed. In Rust, use a framework like Insta.
 - Tautological tests considered harmful.
+- If using `buck2`, prefer to use `InternalRunnerTestInfo` for making tests first-class buck citizens
+
+### Build systems
+
+- Generally we'll use `buck2` for first-party projects (Rust, C++, C). If starting a new project and you aren't sure, ask.
+- When using `buck2`, it should drive as much as it can. In Rust, for example, shelling out to `cargo` should be a last resort.
 
 ## Commit Style
 
