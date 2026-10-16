@@ -9,6 +9,17 @@
 
 Most of these pertain to Rust but similar concepts may apply to other languages
 
+## User-facing docs (README and similar)
+
+- Open with a short `tl;dr` bullet list of what the project does for the reader. Put usage first and build/contributor material last.
+- Write for someone using the project, not someone auditing it. Leave out internal detail such as addresses, flags, module inventories, feature tables, exhaustive protocol or version ranges, test counts and benchmark results. Link to a developer doc instead.
+- Leave out rare setup steps and exhaustive lists. Give the common case and one example.
+- Write in a plain voice. Use "you" for the reader and "we"/"I" for the author. Avoid stilted "the X of Y" phrasing ("the optimizations of the release profile").
+- One idea per sentence. Do not chain clauses with semicolons or colons; split them into sentences or bullets.
+- Say why something exists when it isn't obvious.
+- Link external tools and projects the first time they appear.
+- Do not hard-wrap prose. Write one line per paragraph.
+
 ## Types and data modeling
 
 - Prefer newtypes over raw primitives for domain values, even when the value arrives as a primitive. Wrap identifiers and any quantities that could be confused with each other (angles together with their unit, bitflags, durations, indices, weapon groups) in distinct newtypes so the type system rejects mixing them.
