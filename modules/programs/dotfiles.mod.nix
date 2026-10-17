@@ -13,10 +13,13 @@
 
     # Claude config under CLAUDE_CONFIG_DIR (~/.config/claude-code) set by use-xdg-dirs.
     xdg.config.files."claude-code/CLAUDE.md".source = ../../dotfiles/claude/CLAUDE.md;
+    xdg.config.files."claude-code/RUST.md".source = ../../dotfiles/claude/RUST.md;
     xdg.config.files."claude-code/skills".source = ../../dotfiles/skills;
 
     # Codex reads $CODEX_HOME/AGENTS.md (default ~/.codex). omp reads the
     # CLAUDE.md above since CLAUDE_CONFIG_DIR is set, so it needs no link.
+    # CLAUDE.md names RUST.md by path in both homes.
     files.".codex/AGENTS.md".source = ../../dotfiles/claude/CLAUDE.md;
+    files.".codex/RUST.md".source = ../../dotfiles/claude/RUST.md;
   };
 }
