@@ -9,8 +9,11 @@
       inherit (lib.generators) toINI;
       inherit (lib.modules) mkIf mkMerge;
 
-      # Resolved by mDNS, which junction publishes (see nixosModules.mdns).
-      endpoint = "grpc://junction.local:50051";
+      # junction's tailnet name. The buck2 that projects pin through DotSlash is
+      # a static musl binary, which resolves names only through /etc/hosts and
+      # DNS, so the mDNS name junction.local does not work for it. Tailscale
+      # also encrypts the gRPC, and the name works away from home.
+      endpoint = "grpc://junction.tail8a811.ts.net:50051";
     in
     mkMerge [
       {
@@ -27,11 +30,11 @@
 
       # Points the personal hosts at junction's NativeLink cluster.
       # Deliberately not the work host: that would route work sources and
-      # artifacts to a personal box over plaintext gRPC. Declaring the endpoint
-      # does not by itself send work remotely: a project's execution platform
-      # decides that. As a symlink, buck2 skips this file.
+      # artifacts to a personal box. Declaring the endpoint does not by itself
+      # send work remotely: a project's execution platform decides that.
       (mkIf isPersonal {
         files.".buckconfig.d/10-remote-execution" = {
+          type = "copy";
           generator = toINI { };
           value = {
             buck2_re_client = {
