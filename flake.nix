@@ -35,6 +35,10 @@
     # Deliberately not following our nixpkgs: it pins its own rust toolchain.
     nativelink.url = "github:TraceMachina/nativelink";
 
+    # Secrets encrypted in-repo to host SSH keys (see secrets/secrets.nix).
+    agenix.url = "github:ryantm/agenix";
+    agenix.inputs.nixpkgs.follows = "nixpkgs";
+
     nix-homebrew.url = "github:zhaofengli/nix-homebrew";
     homebrew-core = {
       url = "github:homebrew/homebrew-core";

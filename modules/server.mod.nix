@@ -15,9 +15,7 @@
   flake.nixosModules.openssh =
     { username, ... }:
     let
-      authorizedKeys = [
-        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIB6CmOIY8QOpHzEN3otjDVxtabXC6evXnSBtdVHY9e95 landerbrandt@gmail.com"
-      ];
+      authorizedKeys = (import ../keys.nix).users;
     in
     {
       services.openssh = {

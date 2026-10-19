@@ -145,6 +145,17 @@ Not automated by the switch - install or use these as-is:
   DevUtils, KeyCastr, KeepingYouAwake, macFUSE, Glide. 010 Editor/ImHex is
   covered on richese by `hxy`, which the tools profile does install via Nix.
 
+## Secrets
+
+Secrets are [agenix](https://github.com/ryantm/agenix) files in `secrets/`,
+encrypted to the user keys and host keys in `keys.nix`. `secrets/secrets.nix`
+lists the recipients of each file. NixOS hosts decrypt them during activation
+with `/etc/ssh/ssh_host_ed25519_key`. Piping into `agenix -e` replaces a
+secret without decrypting it. Editing in `$EDITOR` decrypts first, and
+agenix cannot use ssh-agent, so it needs an unencrypted key or the
+passphrase. After changing recipients, run
+`nix run 'path:..#agenix' -- --rekey` from `secrets/`.
+
 ## Notes
 
 - Homebrew is managed declaratively via `nix-homebrew` with pinned taps and
