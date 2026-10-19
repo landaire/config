@@ -26,7 +26,6 @@
           "coreutils"
         ];
         homebrew.casks = [
-          "wezterm@nightly"
           "zed"
           "raycast"
           "firefox"
