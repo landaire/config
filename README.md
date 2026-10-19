@@ -145,6 +145,43 @@ Not automated by the switch - install or use these as-is:
   DevUtils, KeyCastr, KeepingYouAwake, macFUSE, Glide. 010 Editor/ImHex is
   covered on richese by `hxy`, which the tools profile does install via Nix.
 
+## Radicle on junction
+
+`modules/radicle.mod.nix` runs a Radicle seed node and radicle-httpd in the
+`radicle` NixOS container on junction. Ports 8776 (node) and 8080 (httpd) are
+forwarded from the host. An hourly timer runs `modules/radicle/mirror.nu`,
+which mirrors every non-fork GitHub repository of the token's account. The
+node key is generated on the container's first start, in
+`/var/lib/radicle-keys` inside the container.
+
+GitHub private repositories are stored as private Radicle repositories with a
+`block` seeding policy. The node does not serve them to any peer, and httpd
+does not list them. Radicle 1.x transport is neither encrypted nor
+authenticated
+([disclosure](https://radicle.dev/2026/09/23/disclosure-of-vulnerability-in-network-protocol)),
+so do not seed them before Radicle 2.0. `radicle-node` is permitted as an
+insecure package by its exact version; a version bump fails evaluation until
+the permit is reviewed.
+
+The GitHub token is `secrets/radicle-github-token.age`, a fine-grained PAT
+with access to all repositories and Contents read-only. To set or replace it:
+
+```
+cd secrets
+pbpaste | nix run 'path:..#agenix' -- -e radicle-github-token.age
+```
+
+After deploying, the first mirror run starts on the next hour. To start it
+now, on junction:
+
+```
+nixos-container run radicle -- systemctl start --no-block radicle-mirror
+journalctl -M radicle -u radicle-mirror -f
+```
+
+Inside the container (`nixos-container root-login radicle`), `rad-system`
+runs `rad` as the node's user, for example `rad-system ls --all`.
+
 ## Secrets
 
 Secrets are [agenix](https://github.com/ryantm/agenix) files in `secrets/`,
