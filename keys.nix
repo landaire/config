@@ -9,5 +9,6 @@
   # Host keys from /etc/ssh/ssh_host_ed25519_key.pub, which agenix decrypts with.
   hosts = {
     junction = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKDMZG5rMGht4wbZhSXdDp0wpJzTcbT4i2kUaLzHK6K/";
+    rossak = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAb/TCjUrt2zBBHOGI/sRcwFfXYYzfMsXcxPXMPe7jm3";
   };
 }

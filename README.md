@@ -186,8 +186,9 @@ runs `rad` as the node's user, for example `rad-system ls --all`.
 
 Secrets are [agenix](https://github.com/ryantm/agenix) files in `secrets/`,
 encrypted to the user keys and host keys in `keys.nix`. `secrets/secrets.nix`
-lists the recipients of each file. NixOS hosts decrypt them during activation
-with `/etc/ssh/ssh_host_ed25519_key`. Piping into `agenix -e` replaces a
+lists the recipients of each file. Hosts decrypt them with
+`/etc/ssh/ssh_host_ed25519_key`: NixOS during activation, nix-darwin from the
+`activate-agenix` launchd daemon. Piping into `agenix -e` replaces a
 secret without decrypting it. Editing in `$EDITOR` decrypts first, and
 agenix cannot use ssh-agent, so it needs an unencrypted key or the
 passphrase. After changing recipients, run
@@ -200,8 +201,11 @@ passphrase. After changing recipients, run
   is removed on switch.
 - `theme.isDark` / `theme.cornerRadius` (from `options/theme.mod.nix`) drive the
   difftastic background and jujutsu graph style.
-- Fonts (Berkeley Mono) are NOT managed here (the old sops-based module was
-  dropped); install separately.
+- Berkeley Mono is copied into `~/Library/Fonts` on each darwin host that is a
+  recipient of `secrets/fonts/*.age` (`fontRecipients` in
+  `secrets/secrets.nix`). To add a host, put its
+  `/etc/ssh/ssh_host_ed25519_key.pub` in `keys.nix`, add it to
+  `fontRecipients`, and rekey.
 
 [hjem]: https://github.com/feel-co/hjem
 [hjem-rum]: https://github.com/snugnug/hjem-rum
