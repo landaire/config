@@ -25,7 +25,7 @@ run = "sudo nix run 'nix-darwin/master#darwin-rebuild' -- switch --flake 'path:.
 description = "junction: sync this tree to the server and switch (builds on the host)"
 run = """
 tar czf - --exclude=result --exclude=.jj . \
-  | ssh root@junction.local 'rm -rf /root/config && mkdir -p /root/config && tar xzf - -C /root/config && nixos-rebuild switch --flake /root/config#junction'
+  | ssh root@junction.tail8a811.ts.net 'rm -rf /root/config && mkdir -p /root/config && tar xzf - -C /root/config && nixos-rebuild switch --flake /root/config#junction'
 """
 
 [tasks."rebuild:richese"]
