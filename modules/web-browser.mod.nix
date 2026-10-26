@@ -56,18 +56,6 @@ in {
 
         let user = (ls --long /dev/console | get 0.user)
 
-        # Seed default Preferences for a fresh profile only. Helium owns this
-        # file at runtime (extension registry, pins, site permissions are HMAC
-        # tracked in it); rewriting it on activation wipes that state.
-        # Skip when nobody is at the console (user resolves to root).
-        let prefs_path = $"/Users/($user)/Library/Application Support/net.imput.helium/Default/Preferences"
-        if $user != "root" and not ($prefs_path | path exists) {
-          mkdir ($prefs_path | path dirname)
-          r#'${toJSON preferences}'# | save $prefs_path
-          ^chown -R $"($user):staff" $"/Users/($user)/Library/Application Support/net.imput.helium"
-          ^chmod 0600 $prefs_path
-        }
-
         (^/usr/bin/sudo
           --user $user
           ${getExe pkgs.defaultbrowser} helium)

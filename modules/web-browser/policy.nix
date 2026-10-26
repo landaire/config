@@ -138,14 +138,6 @@
 
     DeveloperToolsAvailability = 1;
 
-    # "Continue where you left off" can't be set declaratively on a consumer machine:
-    # - Preference `session.restore_on_startup` is HMAC-tracked, writing it externally trips Chromium's reset popup.
-    # - Policy `RestoreOnStartup` is restricted by upstream Chromium to AD-joined / Cloud-Management-enrolled
-    #   devices only (anti-hijack mitigation), so the managed plist value is loaded then ignored.
-    #
-    # TODO: Remove this comment when Helium on MacOS gets a toggle to disable these checks with an environment variable.
-    RestoreOnStartup = 1;
-
     # BOOKMARKS
     ManagedBookmarks = let
       mkFolder = name: children: {inherit name children;};
