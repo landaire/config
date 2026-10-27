@@ -182,6 +182,28 @@ journalctl -M radicle -u radicle-mirror -f
 Inside the container (`nixos-container root-login radicle`), `rad-system`
 runs `rad` as the node's user, for example `rad-system ls --all`.
 
+## Spotify playlists on junction
+
+`hosts/junction-system.nix` runs the Spotify playlist organizer through Buck2 every day at 04:00 with up to 30 minutes of randomized delay. The timer is persistent, so a missed run starts after the host returns.
+
+Deploy the application repository to `/home/lander/dev/spotify-playlist` before enabling the timer. The service builds and runs that checkout through Buck2.
+
+The client configuration and bootstrap OAuth session are agenix secrets encrypted to the user SSH keys and the junction host key. Give junction a separate Spotify grant so token refreshes do not interfere with the Mac session:
+
+```console
+cd /Users/lander/dev/spotify-playlist
+SPOTIFY_PLAYLIST_KEYCHAIN_ACCOUNT=junction-oauth-session devenv shell -- buck2 run //:spotify-playlist -- authorize
+
+cd /etc/nix-darwin/secrets
+cat /Users/lander/dev/spotify-playlist/SECRETS | nix run 'path:..#agenix' -- -e spotify-playlist-config.age
+security find-generic-password -s dev.lander.spotify-playlist -a junction-oauth-session -w | nix run 'path:..#agenix' -- -e spotify-playlist-session.age
+cd ..
+mise run rebuild:junction
+ssh root@junction.tail8a811.ts.net 'systemctl stop spotify-playlist-sync; rm -f /var/lib/spotify-playlist/session.json; systemctl start --no-block spotify-playlist-sync'
+```
+
+The service copies the bootstrap session into `/var/lib/spotify-playlist/session.json` when that file is absent. Refreshed tokens and playlist management state remain in that private state directory. Remove the session file after deploying a replacement bootstrap secret.
+
 ## Secrets
 
 Secrets are [agenix](https://github.com/ryantm/agenix) files in `secrets/`,
