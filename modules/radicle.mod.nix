@@ -167,6 +167,12 @@
           };
       };
 
+      # By default a switch stops machined and its socket, then starts the
+      # socket. The stopping container's unregister call bus-activates machined
+      # in that gap, so the socket fails to start and the switch reports
+      # failure. A restart leaves the socket listening.
+      systemd.services.systemd-machined.stopIfChanged = false;
+
       networking.nat = {
         enable = true;
         internalInterfaces = [ "ve-radicle" ];
