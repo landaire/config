@@ -28,6 +28,14 @@
         heliumPolicy = (import ./web-browser/policy.nix { inherit lib inputs; }).policy;
         heliumPolicyJson = pkgs.writeText "helium-policy.json" (toJSON heliumPolicy);
 
+        # Global watchman config. buck-out holds millions of files that nothing
+        # needs watched, and watching them costs watchman gigabytes of memory.
+        # A repo's own .watchmanconfig ignore_dirs replaces this list, so such
+        # repos must list buck-out themselves.
+        watchmanJson = pkgs.writeText "watchman.json" (toJSON {
+          ignore_dirs = [ "buck-out" ];
+        });
+
         provision = pkgs.writers.writeNuBin "richese-provision" ''
           # Packages that need OS integration (Helium, Sunshine, tailscale,
           # openssh-server) and waydroid removal all live in the bazzite-nix
@@ -38,6 +46,13 @@
           for dir in ["/etc/chromium/policies/managed" "/etc/helium/policies/managed"] {
             ^sudo install -d $dir
             ^sudo install -m 0644 ${heliumPolicyJson} $"($dir)/policy.json"
+          }
+
+          print "== watchman global config =="
+          # Read at server start; restart the server so existing roots pick it up.
+          ^sudo install -m 0644 ${watchmanJson} /etc/watchman.json
+          if (which watchman | is-not-empty) {
+            do { ^watchman shutdown-server } | complete | ignore
           }
 
           print "== ssh firewall =="

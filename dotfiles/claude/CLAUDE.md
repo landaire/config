@@ -52,6 +52,12 @@
 - Generally we'll use `buck2` for first-party projects (Rust, C++, C). If starting a new project and you aren't sure, ask.
 - When using `buck2`, it should drive as much as it can.
 
+### Heavy jobs
+
+- Size worker pools to at most half of `nproc`. Do not raise parallelism to make a run finish sooner.
+- On Linux, run long CPU- or memory-heavy jobs (fuzzers, emulators, sweeps) in their own capped scope, e.g. `systemd-run --user --scope -p MemoryMax=16G -- <cmd>`. Hitting the cap then kills only that job, not the terminal and every agent in it.
+- Keep per-task memory bounded: no unbounded in-memory traces or logs, and recycle pool workers (`maxtasksperchild`) when tasks allocate heavily.
+
 ## User-facing docs (README and similar)
 
 - Open with a short `tl;dr` bullet list of what the project does for the reader. Put usage first and build/contributor material last.
