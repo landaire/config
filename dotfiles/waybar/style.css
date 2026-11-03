@@ -1,0 +1,50 @@
+* {
+  border: none;
+  border-radius: 0;
+  font-family: "Berkeley Mono", monospace;
+  font-size: 14px;
+  min-height: 0;
+}
+
+window#waybar {
+  background: rgba(40, 40, 40, 0.94);
+  color: #ebdbb2;
+  border-bottom: 2px solid #504945;
+}
+
+#workspaces button {
+  color: #a89984;
+  padding: 0 9px;
+  border-bottom: 2px solid transparent;
+}
+
+#workspaces button.active {
+  color: #fabd2f;
+  border-bottom-color: #d79921;
+}
+
+#workspaces button.urgent {
+  color: #fb4934;
+}
+
+#window,
+#clock,
+#tray,
+#pulseaudio,
+#network,
+#bluetooth,
+#cpu,
+#memory,
+#temperature {
+  padding: 0 8px;
+}
+
+#pulseaudio.muted,
+#network.disconnected,
+#bluetooth.disabled {
+  color: #a89984;
+}
+
+#temperature.critical {
+  color: #fb4934;
+}

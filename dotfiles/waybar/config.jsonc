@@ -1,0 +1,53 @@
+{
+  "layer": "top",
+  "position": "top",
+  "height": 34,
+  "spacing": 8,
+  "modules-left": ["hyprland/workspaces", "hyprland/window"],
+  "modules-center": ["clock"],
+  "modules-right": ["tray", "pulseaudio", "network", "bluetooth", "cpu", "memory", "temperature"],
+  "hyprland/workspaces": {
+    "disable-scroll": true,
+    "all-outputs": false,
+    "format": "{name}"
+  },
+  "hyprland/window": {
+    "max-length": 80,
+    "separate-outputs": true
+  },
+  "clock": {
+    "format": "{:%a %b %d  %H:%M}",
+    "tooltip-format": "<tt>{calendar}</tt>"
+  },
+  "tray": {
+    "spacing": 8
+  },
+  "pulseaudio": {
+    "format": "Audio {volume}%",
+    "format-muted": "Audio muted",
+    "on-click": "pavucontrol"
+  },
+  "network": {
+    "format-wifi": "Net {essid}",
+    "format-ethernet": "Net {ipaddr}",
+    "format-disconnected": "Net down",
+    "tooltip-format": "{ifname}: {ipaddr}/{cidr}",
+    "on-click": "nm-connection-editor"
+  },
+  "bluetooth": {
+    "format": "BT {status}",
+    "format-connected": "BT {num_connections}",
+    "on-click": "blueman-manager"
+  },
+  "cpu": {
+    "format": "CPU {usage}%",
+    "tooltip": false
+  },
+  "memory": {
+    "format": "RAM {percentage}%"
+  },
+  "temperature": {
+    "critical-threshold": 85,
+    "format": "Temp {temperatureC}C"
+  }
+}

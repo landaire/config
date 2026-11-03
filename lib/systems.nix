@@ -6,13 +6,13 @@ let
   # Home modules that must NOT attach on linux (reference osConfig or darwin paths).
   darwinOnlyHome = [ "shadow-xcode" "shell-env-darwin" "hammerspoon" ];
   # Home modules that must NOT attach on darwin (linux-only concerns).
-  linuxOnlyHome = [ "shell-env-linux" "helium-linux" "apps" "audio" "resource-limits" ];
+  linuxOnlyHome = [ "shell-env-linux" "helium-linux" "apps" "audio" "resource-limits" "hyprland" ];
   # Home modules that only apply to a NixOS host (richese is standalone hjem on
   # Bazzite and manages its own shell startup files).
   nixosOnlyHome = [ "shell-env-nixos" ];
   # Home modules that assume a graphical session, dropped on headless hosts.
   # `apps` goes too: NixOS installs the same lists via systemPackages.
-  desktopOnlyHome = [ "helium-linux" "apps" "audio" "zed" "resource-limits" ];
+  desktopOnlyHome = [ "helium-linux" "apps" "audio" "zed" "resource-limits" "hyprland" ];
 in
 {
   # darwinSystem hostName { username, useremail, profile } -> registers

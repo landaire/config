@@ -123,18 +123,13 @@ policy, so a first run only needs Nix installed beforehand. It makes no
 rpm-ostree changes itself; OS-level packages and services come from the
 bazzite-nix image, which is rebased/rebooted separately (Bazzite is atomic).
 
-Binaries that need OS integration ship baked into the bazzite-nix image
-(`ghcr.io/landaire/bazzite-nix`), not layered by the switch: Helium
-(`helium-bin`) and Sunshine (game streaming). Baking them keeps `bootc
-upgrade` working and lets the Sunshine RPM apply its udev rules and
-`cap_sys_admin`/`cap_sys_nice` file capabilities, which the sandboxed flatpak
-cannot. Helium's config and policies are still managed declaratively by the
-switch, same as on macOS.
+Binaries that need OS integration ship baked into the bazzite-nix image (`ghcr.io/landaire/bazzite-nix`), not layered by the switch. This includes Hyprland, its desktop portal and session utilities, Helium (`helium-bin`), and Sunshine. Baking them keeps `bootc upgrade` working and lets the Sunshine RPM apply its udev rules and file capabilities.
 
-Other UI apps are installed as user Flatpaks. The switch also uninstalls the
-Firefox system flatpak and the now-redundant Sunshine flatpak (the latter only
-once the native RPM is on PATH). Waydroid is removed and sshd/tailscaled are
-enabled in the image build. Screenshots use the built-in KDE Spectacle.
+The home switch links the Hyprland, Hypridle, Hyprlock, Waybar, Fuzzel, and Mako configuration from `dotfiles/`. Run `nix run .#richese-switch -- --home` before the first Hyprland login. Select `Hyprland` from Plasma Login Manager after deploying the image. Plasma remains available as a fallback session.
+
+Hyprland treats the Elgato 4K X as a mirror of `DP-2`, not as another workspace. `Super+Shift+F1` selects the highest-resolution desktop: native 3440x1440 at 174.963 Hz on the Dell, mirrored to the capture card at 2560x1440 and 240 Hz. The card does not advertise 3440x1440, so Hyprland letterboxes the ultrawide image. `Super+Shift+F2` selects 2560x1440 capture mode and `Super+Shift+F3` selects 1920x1080 capture mode. Both drive the Dell at 2560x1440 and 119.88 Hz, its highest 16:9 refresh rate, and the capture card at 240 Hz. The Dell goes into standby on its own 1920x1080 timing, so the 1080p mode scales the desktop by 4/3 instead. `Super+Shift+F4` disables the capture output without changing the Dell's mode. F1, F2, or F3 re-enables it.
+
+Other UI apps are installed as user Flatpaks. The switch also uninstalls the Firefox system flatpak and the redundant Sunshine flatpak after its native replacement is available. Waydroid is removed and sshd and tailscaled are enabled in the image build. Hyprland screenshots use Grim and Slurp. Plasma screenshots use Spectacle.
 
 Not automated by the switch - install or use these as-is:
 
