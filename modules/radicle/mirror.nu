@@ -42,6 +42,7 @@ def configured-seed-rids [] {
 
 def mirror [repo: record, repos_dir: path] {
   let slug = $repo.nameWithOwner
+  let display_name = $slug
   let branch = $repo.defaultBranchRef.name
   # Radicle rejects descriptions over 255 bytes; GitHub allows 350 characters.
   let description = $repo.description | default "" | clip-bytes 255
@@ -73,7 +74,7 @@ def mirror [repo: record, repos_dir: path] {
   if (^git --git-dir $git_dir config get --default "" remote.rad.url | str trim | is-empty) {
     print $"($slug): creating ($visibility) repository"
     # The `=` forms keep a value starting with '-' from parsing as a flag.
-    (^rad init $"--name=($repo.name)" $"--description=($description)"
+    (^rad init $"--name=($display_name)" $"--description=($description)"
       $"--default-branch=($branch)" $"--($visibility)" --no-seed --no-confirm $git_dir)
   }
   let rid = (^git --git-dir $git_dir config get remote.rad.url
@@ -98,7 +99,7 @@ def mirror [repo: record, repos_dir: path] {
   # A new default branch must be named in the identity before the push below
   # can prune the old one.
   let project = $doc.payload."xyz.radicle.project"
-  let payload_args = {name: $repo.name, description: $description, defaultBranch: $branch}
+  let payload_args = {name: $display_name, description: $description, defaultBranch: $branch}
     | items {|key, value|
       if ($project | get --optional $key) == $value { [] } else {
         [--payload xyz.radicle.project $key ($value | to json --raw)]
@@ -132,6 +133,7 @@ def mirror [repo: record, repos_dir: path] {
     ^rad unseed $rid o> /dev/null
   }
   ^rad seed --no-fetch --scope all $rid o> /dev/null
+  print $"($slug): ($rid)"
   $rid
 }
 

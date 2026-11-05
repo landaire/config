@@ -154,6 +154,11 @@ which mirrors and seeds only this allow list:
 - `landaire-contrib/buck2-rustc-bootstrap`
 - `landaire-contrib/llvm-project`
 
+Radicle project names use the full `owner/repository` slug. GitHub repositories
+with the same short name therefore remain distinguishable in `rad-system ls`
+and Garden. Their GitHub node IDs key separate local mirrors, and their RIDs
+remain distinct and unchanged when the display name is synchronized.
+
 The last slug is the existing GitHub LLVM fork; there is no
 `landaire-contrib/llvm` repository. The node's default seeding policy is
 `block`. Each successful mirror run removes stale explicit policies, so
