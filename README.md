@@ -123,6 +123,10 @@ policy, so a first run only needs Nix installed beforehand. It makes no
 rpm-ostree changes itself; OS-level packages and services come from the
 bazzite-nix image, which is rebased/rebooted separately (Bazzite is atomic).
 
+The installed `richese-tools` profile also roots the generated hjem manifest
+and every managed-file source. This keeps links such as
+`~/.config/jj/config.toml` valid after Nix garbage collection.
+
 Binaries that need OS integration ship baked into the bazzite-nix image (`ghcr.io/landaire/bazzite-nix`), not layered by the switch. This includes Hyprland, its desktop portal and session utilities, Helium (`helium-bin`), and Sunshine. Baking them keeps `bootc upgrade` working and lets the Sunshine RPM apply its udev rules and file capabilities.
 
 The home switch links the Hyprland, Hypridle, Hyprlock, Waybar, Fuzzel, and Mako configuration from `dotfiles/`. Run `nix run .#richese-switch -- --home` before the first Hyprland login. Select `Hyprland` from Plasma Login Manager after deploying the image. Plasma remains available as a fallback session.

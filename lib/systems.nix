@@ -218,13 +218,11 @@ in
         inherit files;
       };
 
-      # hjem standalone `switch` only nix-EVALs the manifest; it never builds the
-      # source derivations, and smfh silently skips any file whose source store
-      # path is not realized. Our sources are generated derivations
-      # (writeTOML/writeText/...), so we build the manifest as a derivation that
-      # takes every source as an input and hand hjem the built file via
-      # `--manifest`. Realizing this (e.g. as part of the switch app's closure)
-      # realizes every source into the store, so activation actually links them.
+      # hjem standalone `switch` only nix-EVALs the manifest; it never builds
+      # or roots source derivations. Build the manifest to realize its sources,
+      # then copy it into a package installed with the tools profile. The
+      # manifest text references every source store path, so that profile keeps
+      # managed-file symlink targets alive across garbage collection.
       sourceDrvs =
         fileSets
         |> concatMap (
@@ -235,6 +233,10 @@ in
         value = builtins.toJSON manifest;
         passAsFile = [ "value" ];
       } ''cp "$valuePath" "$out"'';
+      manifestRoot = pkgs.runCommand "${hostName}-manifest-root" { } ''
+        mkdir -p "$out/share/hjem"
+        cp ${manifestFile} "$out/share/hjem/manifest.json"
+      '';
     in
     {
       flake.hjemConfigurations.${hostName} = {
@@ -246,7 +248,7 @@ in
       flake.packages.${system} = {
         "${hostName}-tools" = pkgs.buildEnv {
           name = "${hostName}-tools";
-          paths = cfg.packages;
+          paths = cfg.packages ++ [ manifestRoot ];
         };
         "${hostName}-manifest" = manifestFile;
       };

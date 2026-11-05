@@ -75,10 +75,10 @@
 
           def do-home [] {
             print "== home (link managed files) =="
-            # Drive smfh directly (ncc-style). The manifest's sources are already
-            # realized (they are inputs of ${richeseManifest}). diff --fallback
-            # applies changes vs the last-applied manifest (or links all on first
-            # run); activate then re-links anything missing, so nothing desyncs.
+            # The switch closure realizes the manifest sources before activation.
+            # The tools profile installed below contains a copy of the manifest,
+            # which permanently roots those sources after this process exits.
+            # `activate` re-links anything missing so nothing stays desynced.
             let current = ($env.HOME | path join ".local/state/richese/manifest.json")
             mkdir ($current | path dirname)
             ^($smfh) diff $manifest_file $current --fallback
