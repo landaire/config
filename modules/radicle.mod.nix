@@ -143,7 +143,10 @@
                 User = "radicle";
                 Group = "radicle";
                 StateDirectory = "radicle-mirror";
-                LoadCredential = "github-token:/run/secrets/radicle/github-token";
+                LoadCredential = [
+                  "github-token:/run/secrets/radicle/github-token"
+                  "landaire-contrib-token:/run/secrets/radicle/landaire-contrib-token"
+                ];
                 BindReadOnlyPaths = [
                   "${cfg.configFile}:${radHome}/config.json"
                   "${keysDir}/radicle:${radHome}/keys/radicle"
@@ -180,10 +183,17 @@
 
       # Copied rather than symlinked into /run/agenix, which the container
       # cannot see; the container bind-mounts the directory.
-      age.secrets.radicle-github-token = {
-        file = ../secrets/radicle-github-token.age;
-        path = "${secretsDir}/github-token";
-        symlink = false;
+      age.secrets = {
+        radicle-github-token = {
+          file = ../secrets/radicle-github-token.age;
+          path = "${secretsDir}/github-token";
+          symlink = false;
+        };
+        radicle-landaire-contrib-token = {
+          file = ../secrets/radicle-landaire-contrib-token.age;
+          path = "${secretsDir}/landaire-contrib-token";
+          symlink = false;
+        };
       };
       systemd.tmpfiles.rules = [ "d ${secretsDir} 0700 root root -" ];
     };

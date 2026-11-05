@@ -136,22 +136,31 @@ def mirror [repo: record, repos_dir: path] {
 }
 
 def main [] {
-  $env.GH_TOKEN = open --raw ($env.CREDENTIALS_DIRECTORY | path join github-token) | str trim
+  let credentials_dir = $env.CREDENTIALS_DIRECTORY
+  let landaire_token = open --raw ($credentials_dir | path join github-token) | str trim
+  let contrib_token = open --raw ($credentials_dir | path join landaire-contrib-token) | str trim
   let repos_dir = $env.STATE_DIRECTORY | path join repos
   mkdir $repos_dir
 
-  let repos = $repository_slugs | each {|slug|
-    (^gh repo view $slug
-      --json id,name,nameWithOwner,isEmpty,description,defaultBranchRef)
-    | from json
-  } | where not isEmpty
-
-  let results = $repos | each {|repo|
-    try {
-      {rid: (mirror $repo $repos_dir), failed: null}
-    } catch {|err|
-      print --stderr $"($repo.nameWithOwner): ($err.msg)"
-      {rid: null, failed: $repo.nameWithOwner}
+  let results = $repository_slugs | each {|slug|
+    let token = if $slug starts-with "landaire-contrib/" {
+      $contrib_token
+    } else {
+      $landaire_token
+    }
+    with-env {GH_TOKEN: $token} {
+      try {
+        let repo = (^gh repo view $slug
+          --json id,name,nameWithOwner,isEmpty,description,defaultBranchRef)
+          | from json
+        if $repo.isEmpty {
+          error make {msg: "repository is empty"}
+        }
+        {rid: (mirror $repo $repos_dir), failed: null}
+      } catch {|err|
+        print --stderr $"($slug): ($err.msg)"
+        {rid: null, failed: $slug}
+      }
     }
   }
   let failed = $results | get failed | compact

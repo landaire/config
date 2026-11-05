@@ -169,12 +169,20 @@ The risk remains until Radicle 2.0. `radicle-node` is permitted as an insecure
 package by its exact version; a version bump fails evaluation until the permit
 is reviewed.
 
-The GitHub token is `secrets/radicle-github-token.age`, a fine-grained PAT
-with Contents read-only access to these four repositories. To set or replace it:
+The mirror uses separate fine-grained PATs because GitHub tokens are scoped to
+one resource owner. Both need Contents read-only access:
 
-```
+- `secrets/radicle-github-token.age` covers `landaire`.
+- `secrets/radicle-landaire-contrib-token.age` covers `landaire-contrib`.
+
+From Nushell, set or replace either token with raw pipeline input:
+
+```nu
 cd secrets
-pbpaste | nix run 'path:..#agenix' -- -e radicle-github-token.age
+open --raw /absolute/path/to/landaire-token |
+  nix run 'path:..#agenix' -- --edit radicle-github-token.age
+open --raw /absolute/path/to/landaire-contrib-token |
+  nix run 'path:..#agenix' -- --edit radicle-landaire-contrib-token.age
 ```
 
 After deploying, the first mirror run starts on the next hour. To start it

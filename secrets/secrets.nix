@@ -13,6 +13,7 @@ let
 in
   {
     "radicle-github-token.age".publicKeys = keys.users ++ [keys.hosts.junction];
+    "radicle-landaire-contrib-token.age".publicKeys = keys.users ++ [keys.hosts.junction];
     "spotify-playlist-config.age".publicKeys = keys.users ++ [keys.hosts.junction];
     "spotify-playlist-session.age".publicKeys = keys.users ++ [keys.hosts.junction];
   }
