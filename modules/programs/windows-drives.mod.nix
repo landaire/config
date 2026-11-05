@@ -87,7 +87,7 @@
 
           let user_id = ^($id) -u | str trim
           let group_id = ^($id) -g | str trim
-          let mounts = findmnt-filesystems --source $"UUID=($spec.uuid)" --output TARGET,UUID,FSTYPE,OPTIONS
+          let mounts = findmnt-filesystems --source $"UUID=($spec.uuid)" --output TARGET,UUID,FSTYPE,OPTIONS,VFS-OPTIONS
 
           if ($mounts | is-not-empty) {
             if ($mounts | any {|mounted| $mounted.uuid != $spec.uuid or $mounted.fstype != "ntfs3" }) {
@@ -105,10 +105,11 @@
 
             let mount_states = $mounts | each {|mounted|
               let options = $mounted.options | split row ","
+              let vfs_options = $mounted | get "vfs-options" | split row ","
               {
                 mounted: $mounted
                 options: $options
-                writable: ("rw" in $options)
+                writable: ("rw" in $vfs_options)
                 masks_execute: ($options | any {|option| $option in ["fmask=0111" "fmask=111"] })
               }
             }
