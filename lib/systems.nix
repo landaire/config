@@ -156,7 +156,12 @@ in
           (import ../overlays/master.nix self.inputs)
           (import ../overlays/reindeer.nix)
         ];
-        config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) allowedUnfree;
+        config = {
+          allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) allowedUnfree;
+          # The CLI is bundled with radicle-node. Keep the transport-risk
+          # exception exact so a version change fails evaluation for review.
+          permittedInsecurePackages = [ "radicle-node-1.10.3" ];
+        };
       };
 
       hjem-lib = import (hjemSrc + "/lib.nix") { inherit lib pkgs; };

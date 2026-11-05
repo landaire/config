@@ -11,6 +11,10 @@
   in {
     config = mkMerge [
       {
+        # The CLI is bundled with radicle-node. Pin the exception so a version
+        # change requires reviewing its unauthenticated private-repo transport.
+        nixpkgs.config.permittedInsecurePackages = [ "radicle-node-1.10.3" ];
+
         # Unfree allowlist (replaces blanket allowUnfree). Extend as builds reveal more.
         allowedUnfreePackageNames = [
           "claude-code"
