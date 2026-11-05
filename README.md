@@ -165,10 +165,11 @@ The last slug is the existing GitHub LLVM fork; there is no
 repositories previously mirrored by the old account-wide job are no longer
 seeded.
 
-`landaire/noscope360` is private. Its Radicle identity allows the Radicle
-Garden DID, and the local node seeds it so Garden can fetch it. Radicle 1.x
-transport is neither encrypted nor authenticated; a peer can impersonate an
-allow-listed DID and fetch the repository
+Repository visibility is synchronized from GitHub on every run. Public
+repositories are seeded directly. If an allow-listed GitHub repository is
+private, its Radicle identity allows the Garden DID before the local node seeds
+it. Radicle 1.x transport is neither encrypted nor authenticated; a peer can
+impersonate an allow-listed DID and fetch a private repository
 ([disclosure](https://radicle.dev/2026/09/23/disclosure-of-vulnerability-in-network-protocol)).
 The risk remains until Radicle 2.0. `radicle-node` is permitted as an insecure
 package by its exact version; a version bump fails evaluation until the permit
