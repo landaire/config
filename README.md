@@ -149,9 +149,9 @@ Not automated by the switch - install or use these as-is:
 ## Radicle on junction
 
 `modules/radicle.mod.nix` runs a Radicle seed node and radicle-httpd in the
-`radicle` NixOS container on junction. Ports 8776 (node) and 8080 (httpd) are
-forwarded from the host. An hourly timer runs `modules/radicle/mirror.nu`,
-which mirrors and seeds only this allow list:
+`radicle` NixOS container on junction. Only port 8080 (httpd) is forwarded from
+the host; the Radicle node initiates its own outbound sessions. An hourly timer
+runs `modules/radicle/mirror.nu`, which mirrors and seeds only this allow list:
 
 - `landaire/noscope360`
 - `landaire/xenon-forge`
@@ -178,6 +178,14 @@ impersonate an allow-listed DID and fetch a private repository
 The risk remains until Radicle 2.0. `radicle-node` is permitted as an insecure
 package by its exact version; a version bump fails evaluation until the permit
 is reviewed.
+
+The node uses a static peer set: the Radicle-operated Iris and Rosa seeds plus
+the configured Garden node. Dynamic peer discovery cannot open sessions to
+other nodes, port 8776 is neither opened nor forwarded, and the node advertises
+no external address. Iris, Rosa, Garden, and GitHub still see the home's public
+source IP for connections made to them. Other Radicle peers can receive the
+node ID and public repository announcements through gossip, but not an
+advertised home address.
 
 The mirror uses separate fine-grained PATs because GitHub tokens are scoped to
 one resource owner. Both need Contents read-only access:

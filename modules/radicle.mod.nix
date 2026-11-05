@@ -9,9 +9,13 @@
     { lib, ... }:
     let
       alias = "junction";
-      nodePort = 8776;
       httpdPort = 8080;
       gardenAddress = "z6MkrwUPtWaeqYEAS4YzPfzc94UQQFBpPqVVEw2vHKun2Tgy@lander.radicle.garden:58038";
+      officialSeeds = [
+        "z6MkrLMMsiPWUcNPHcRajuMi9mDfYckSoJyPwwnknocNYPm7@iris.radicle.network:8776"
+        "z6Mkmqogy2qEM2ummccUthFEaaHvyYmYBYh3dbe9W4ebScxo@rosa.radicle.network:8776"
+      ];
+      trustedPeers = officialSeeds ++ [ gardenAddress ];
       secretsDir = "/var/lib/secrets/radicle";
       radHome = "/var/lib/radicle";
       # Outside radHome, which radicle-httpd also mounts. The node gets the
@@ -31,10 +35,7 @@
               hostPort = port;
               protocol = "tcp";
             })
-            [
-              nodePort
-              httpdPort
-            ];
+            [ httpdPort ];
 
         bindMounts.secrets = {
           hostPath = secretsDir;
@@ -72,18 +73,18 @@
               enable = true;
               privateKey = "${keysDir}/radicle";
               publicKey = "${keysDir}/radicle.pub";
-              node.openFirewall = true;
+              # The node only initiates sessions with the static trusted peer
+              # set and rejects non-local inbound sessions. Port 8776 is not
+              # opened or forwarded.
+              node.openFirewall = false;
               settings = {
-                # A config.json without this key has no seeds at all; these are
-                # the clearnet entries `rad auth` writes.
-                preferredSeeds = [
-                  "z6MkrLMMsiPWUcNPHcRajuMi9mDfYckSoJyPwwnknocNYPm7@iris.radicle.network:8776"
-                  "z6Mkmqogy2qEM2ummccUthFEaaHvyYmYBYh3dbe9W4ebScxo@rosa.radicle.network:8776"
-                  gardenAddress
-                ];
+                preferredSeeds = trustedPeers;
                 node = {
                   inherit alias;
-                  connect = [ gardenAddress ];
+                  connect = trustedPeers;
+                  externalAddresses = [ ];
+                  limits.connection.inbound = 0;
+                  peers.type = "static";
                   # The mirror creates explicit allow policies only for its
                   # repository list and removes stale policies after each run.
                   # Everything else remains blocked.
