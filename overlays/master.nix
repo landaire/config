@@ -7,6 +7,7 @@
 inputs:
 let
   fromMaster = [
+    "opencode"
     "yt-dlp"
   ];
 in
