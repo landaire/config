@@ -1,12 +1,18 @@
-# Mirrors every non-fork GitHub repository owned by the account behind the
-# token into the local Radicle node. Runs as the radicle user with RAD_HOME
-# pointing at the node's home.
+# Mirrors an explicit GitHub repository allow list into the local Radicle node.
+# Runs as the radicle user with RAD_HOME pointing at the node's home.
 #
-# GitHub private repositories become private Radicle repositories with a
-# "block" seeding policy, so the node keeps them in storage but serves them to
-# no peer. Radicle 1.x transport sends data in plaintext and lets a peer claim
-# any Node ID, including this node's own, which is the allow-listed delegate:
+# The Garden DID is allowed to fetch private repositories. Radicle 1.x
+# transport sends data in plaintext and lets a peer claim any Node ID,
+# including an allow-listed DID:
 # https://radicle.dev/2026/09/23/disclosure-of-vulnerability-in-network-protocol
+
+const garden_did = "did:key:z6MkrwUPtWaeqYEAS4YzPfzc94UQQFBpPqVVEw2vHKun2Tgy"
+const repository_slugs = [
+  "landaire/noscope360"
+  "landaire/xenon-forge"
+  "landaire-contrib/buck2-rustc-bootstrap"
+  "landaire-contrib/llvm-project"
+]
 
 def clip-bytes [max: int]: string -> string {
   mut chars = $in | split chars
@@ -24,6 +30,14 @@ def radicle-visibility []: string -> string {
     "PRIVATE" | "INTERNAL" => "private"
     $other => { error make {msg: $"unknown visibility ($other)"} }
   }
+}
+
+def configured-seed-rids [] {
+  (^rad seed)
+  | lines
+  | parse --regex '.*(?P<rid>rad:[A-Za-z0-9]+).*'
+  | get rid
+  | uniq
 }
 
 def mirror [repo: record, repos_dir: path] {
@@ -71,11 +85,10 @@ def mirror [repo: record, repos_dir: path] {
   let current_visibility = $doc.visibility?.type? | default "public"
 
   # Blocked before the push so that a repository made private on GitHub is not
-  # served while its new commits reach the node. `rad seed` leaves an existing
-  # block in place, so a repository made public has its block removed here and
-  # is seeded after the push. Until then the node's default policy, block,
-  # applies. Output goes to /dev/null rather than through `ignore`, which
-  # discards a non-zero exit.
+  # served while its identity and commits are updated. `rad seed` leaves an
+  # existing block in place, so it is removed after the push. Until then the
+  # node's default policy, block, applies. Output goes to /dev/null rather than
+  # through `ignore`, which discards a non-zero exit.
   if $visibility == "private" {
     ^rad block $rid o> /dev/null
   } else if $current_visibility == "private" {
@@ -95,10 +108,19 @@ def mirror [repo: record, repos_dir: path] {
   let visibility_args = if $current_visibility == $visibility { [] } else {
     [--visibility $visibility]
   }
+  let current_allow = $doc.visibility?.allow? | default []
+  let needs_garden = $visibility == "private" and $garden_did not-in $current_allow
   let update = $visibility_args ++ $payload_args
   if ($update | is-not-empty) {
     print $"($slug): updating identity: ($update | str join ' ')"
     ^rad id update --repo $rid --title "Synchronize with GitHub" --no-confirm --quiet ...$update
+  }
+
+  if $needs_garden {
+    print $"($slug): allowing radicle.garden seed node"
+    (^rad id update --repo $rid
+      --title "Add radicle.garden seed node to allow list"
+      --allow $garden_did --no-confirm --quiet)
   }
 
   # The node refuses to delete the old default branch until the new one has
@@ -106,9 +128,11 @@ def mirror [repo: record, repos_dir: path] {
   ^git --git-dir $git_dir push --quiet rad ...$refspecs
   ^git --git-dir $git_dir push --quiet --prune rad ...$refspecs
 
-  if $visibility == "public" {
-    ^rad seed --no-fetch --scope all $rid o> /dev/null
+  if $visibility == "private" {
+    ^rad unseed $rid o> /dev/null
   }
+  ^rad seed --no-fetch --scope all $rid o> /dev/null
+  $rid
 }
 
 def main [] {
@@ -116,22 +140,28 @@ def main [] {
   let repos_dir = $env.STATE_DIRECTORY | path join repos
   mkdir $repos_dir
 
-  let repos = (^gh repo list --source --limit 100000
-    --json id,name,nameWithOwner,isEmpty,description,defaultBranchRef)
+  let repos = $repository_slugs | each {|slug|
+    (^gh repo view $slug
+      --json id,name,nameWithOwner,isEmpty,description,defaultBranchRef)
     | from json
-    | where not isEmpty
+  } | where not isEmpty
 
-  let failed = $repos | each {|repo|
+  let results = $repos | each {|repo|
     try {
-      mirror $repo $repos_dir
-      null
+      {rid: (mirror $repo $repos_dir), failed: null}
     } catch {|err|
       print --stderr $"($repo.nameWithOwner): ($err.msg)"
-      $repo.nameWithOwner
+      {rid: null, failed: $repo.nameWithOwner}
     }
-  } | compact
-
+  }
+  let failed = $results | get failed | compact
   if ($failed | is-not-empty) {
     error make {msg: $"failed to mirror: ($failed | str join ', ')"}
+  }
+
+  let selected_rids = $results | get rid
+  for rid in (configured-seed-rids | where {|rid| $rid not-in $selected_rids}) {
+    print $"($rid): removing stale seeding policy"
+    ^rad unseed $rid o> /dev/null
   }
 }

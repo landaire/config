@@ -147,21 +147,30 @@ Not automated by the switch - install or use these as-is:
 `modules/radicle.mod.nix` runs a Radicle seed node and radicle-httpd in the
 `radicle` NixOS container on junction. Ports 8776 (node) and 8080 (httpd) are
 forwarded from the host. An hourly timer runs `modules/radicle/mirror.nu`,
-which mirrors every non-fork GitHub repository of the token's account. The
-node key is generated on the container's first start, in
-`/var/lib/radicle-keys` inside the container.
+which mirrors and seeds only this allow list:
 
-GitHub private repositories are stored as private Radicle repositories with a
-`block` seeding policy. The node does not serve them to any peer, and httpd
-does not list them. Radicle 1.x transport is neither encrypted nor
-authenticated
-([disclosure](https://radicle.dev/2026/09/23/disclosure-of-vulnerability-in-network-protocol)),
-so do not seed them before Radicle 2.0. `radicle-node` is permitted as an
-insecure package by its exact version; a version bump fails evaluation until
-the permit is reviewed.
+- `landaire/noscope360`
+- `landaire/xenon-forge`
+- `landaire-contrib/buck2-rustc-bootstrap`
+- `landaire-contrib/llvm-project`
+
+The last slug is the existing GitHub LLVM fork; there is no
+`landaire-contrib/llvm` repository. The node's default seeding policy is
+`block`. Each successful mirror run removes stale explicit policies, so
+repositories previously mirrored by the old account-wide job are no longer
+seeded.
+
+`landaire/noscope360` is private. Its Radicle identity allows the Radicle
+Garden DID, and the local node seeds it so Garden can fetch it. Radicle 1.x
+transport is neither encrypted nor authenticated; a peer can impersonate an
+allow-listed DID and fetch the repository
+([disclosure](https://radicle.dev/2026/09/23/disclosure-of-vulnerability-in-network-protocol)).
+The risk remains until Radicle 2.0. `radicle-node` is permitted as an insecure
+package by its exact version; a version bump fails evaluation until the permit
+is reviewed.
 
 The GitHub token is `secrets/radicle-github-token.age`, a fine-grained PAT
-with access to all repositories and Contents read-only. To set or replace it:
+with Contents read-only access to these four repositories. To set or replace it:
 
 ```
 cd secrets
@@ -178,6 +187,15 @@ journalctl -M radicle -u radicle-mirror -f
 
 Inside the container (`nixos-container root-login radicle`), `rad-system`
 runs `rad` as the node's user, for example `rad-system ls --all`.
+
+After the mirror succeeds, copy the four RIDs from `rad-system ls --all` into
+the Garden dashboard's **Add a repo** form. Garden's full connect address
+(`<node-id>@<host>:<port>`) must also be added to both
+`services.radicle.settings.preferredSeeds` and
+`services.radicle.settings.node.connect`, then deployed. The bare DID is enough
+for the private repository's identity allow list, but not enough to establish
+the direct connection Garden needs to discover and fetch a private repository.
+Confirm all four entries reach `synced` in the dashboard.
 
 ## Spotify playlists on junction
 

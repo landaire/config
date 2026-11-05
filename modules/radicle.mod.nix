@@ -1,7 +1,6 @@
-# Radicle seed node in a NixOS container, with an hourly job that mirrors every
-# non-fork GitHub repository of the token's account into it. GitHub private
-# repositories are stored as private Radicle repositories that the node does
-# not seed (see radicle/mirror.nu), and radicle-httpd does not serve them.
+# Radicle seed node in a NixOS container, with an hourly job that mirrors an
+# explicit GitHub repository allow list into it. Private repositories are
+# allow-listed for the configured Radicle Garden node (see radicle/mirror.nu).
 #
 # The mirror reads a GitHub token from secrets/radicle-github-token.age.
 # The node key is generated inside the container on first start.
@@ -62,8 +61,9 @@
           {
             system.stateVersion = "26.05";
 
-            # Marked for the 1.x transport flaws, which expose private
-            # repositories only; the mirror never seeds those.
+            # Marked for the 1.x transport flaws. Allow-listing a private
+            # repository does not prevent a peer from impersonating an allowed
+            # DID and fetching it.
             # https://radicle.dev/2026/09/23/disclosure-of-vulnerability-in-network-protocol
             nixpkgs.config.permittedInsecurePackages = [ "radicle-node-1.10.3" ];
 
@@ -81,9 +81,9 @@
                 ];
                 node = {
                   inherit alias;
-                  # The mirror relies on this while a repository changes
-                  # visibility, and it keeps the node from seeding other peers'
-                  # repositories.
+                  # The mirror creates explicit allow policies only for its
+                  # repository list and removes stale policies after each run.
+                  # Everything else remains blocked.
                   seedingPolicy.default = "block";
                 };
               };
