@@ -459,6 +459,7 @@
         "nix-homebrew": "nix-homebrew",
         "nixpkgs": "nixpkgs_2",
         "nixpkgs-master": "nixpkgs-master",
+        "steamroom": "steamroom",
         "themes": "themes",
         "ublock": "ublock"
       }
@@ -502,6 +503,23 @@
       "original": {
         "owner": "oxalica",
         "repo": "rust-overlay",
+        "type": "github"
+      }
+    },
+    "steamroom": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1787254468,
+        "narHash": "sha256-HECpqg33+fqBOWtEpxDIqqUXA5S/AqgcnXYBdxoWkJM=",
+        "owner": "landaire",
+        "repo": "steamroom",
+        "rev": "4dd310cb98d94f2acb99ea62d5996284bd080bca",
+        "type": "github"
+      },
+      "original": {
+        "owner": "landaire",
+        "ref": "main",
+        "repo": "steamroom",
         "type": "github"
       }
     },

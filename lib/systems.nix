@@ -1,7 +1,7 @@
 { lib, self, ... }:
 let
   inherit (lib.attrsets) attrValues removeAttrs;
-  inherit (lib.lists) concatMap filter singleton;
+  inherit (lib.lists) concatMap filter optionals singleton;
 
   # Home modules that must NOT attach on linux (reference osConfig or darwin paths).
   darwinOnlyHome = [ "shadow-xcode" "shell-env-darwin" "hammerspoon" ];
@@ -10,6 +10,8 @@ let
   # Home modules that only apply to a NixOS host (richese is standalone hjem on
   # Bazzite and manages its own shell startup files).
   nixosOnlyHome = [ "shell-env-nixos" ];
+  # Home modules that only apply to the standalone richese workstation.
+  richeseOnlyHome = [ "windows-drives" ];
   # Home modules that assume a graphical session, dropped on headless hosts.
   # `apps` goes too: NixOS installs the same lists via systemPackages.
   desktopOnlyHome = [ "helium-linux" "apps" "audio" "zed" "resource-limits" "hyprland" ];
@@ -66,7 +68,7 @@ in
             # user (enable defaults true) and attaches every home module to them.
             home.users.${username} = { };
             home.extraModules = attrValues (
-              removeAttrs self.homeModules (linuxOnlyHome ++ nixosOnlyHome)
+              removeAttrs self.homeModules (linuxOnlyHome ++ nixosOnlyHome ++ richeseOnlyHome)
             );
           };
       };
@@ -121,7 +123,7 @@ in
 
             home.users.${username} = { };
             home.extraModules = attrValues (
-              removeAttrs self.homeModules (darwinOnlyHome ++ desktopOnlyHome)
+              removeAttrs self.homeModules (darwinOnlyHome ++ desktopOnlyHome ++ richeseOnlyHome)
             );
           };
       };
@@ -175,7 +177,13 @@ in
         modules =
           [ (hjemSrc + "/modules/common/user.nix") ]
           ++ [ self.inputs.hjem-rum.hjemModules.hjem-rum ]
-          ++ attrValues (removeAttrs self.homeModules (darwinOnlyHome ++ nixosOnlyHome))
+          ++ attrValues (
+            removeAttrs self.homeModules (
+              darwinOnlyHome
+              ++ nixosOnlyHome
+              ++ optionals (hostName != "richese") richeseOnlyHome
+            )
+          )
           ++ [
             {
               inherit directory;

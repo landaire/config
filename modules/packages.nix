@@ -6,6 +6,37 @@
 }:
 let
   system = pkgs.stdenv.hostPlatform.system;
+  steamroom = pkgs.rustPlatform.buildRustPackage {
+    pname = "steamroom";
+    version = "unstable";
+    src = inputs.steamroom;
+    cargoLock.lockFile = inputs.steamroom + "/Cargo.lock";
+    cargoBuildFlags = [
+      "--package"
+      "steamroom-cli"
+      "--bin"
+      "steamroom"
+    ];
+    cargoTestFlags = [
+      "--package"
+      "steamroom-cli"
+      "--bin"
+      "steamroom"
+    ];
+    meta = {
+      description = "Utilities for interacting with Steam APIs";
+      homepage = "https://github.com/landaire/steamroom";
+      license = with pkgs.lib.licenses; [ mit asl20 ];
+      mainProgram = "steamroom";
+      platforms = [
+        "aarch64-darwin"
+        "x86_64-linux"
+      ];
+    };
+  };
+  zed = pkgs.writeShellScriptBin "zed" ''
+    exec flatpak run dev.zed.Zed "$@"
+  '';
 in
 {
   common = with pkgs; [
@@ -23,9 +54,14 @@ in
     omp
   ];
 
-  # hxy is a desktop hex editor. Keep it on workstation profiles, but do not
-  # include it in the headless NixOS server's system profile.
-  workstation = [ inputs.hxy.packages.${system}.default ];
+  # Desktop tools shared by macOS and Linux workstations. Linux uses a wrapper
+  # because Flatpak exports Zed as dev.zed.Zed rather than zed.
+  workstation =
+    [
+      steamroom
+      inputs.hxy.packages.${system}.default
+    ]
+    ++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isLinux [ zed ];
 
   personal = with pkgs; [
     sendme bacon kondo zola asciinema mdbook claude-code codex trunk mergiraf

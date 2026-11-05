@@ -31,6 +31,11 @@
     hxy.url = "github:landaire/hxy";
     hxy.inputs.nixpkgs.follows = "nixpkgs";
 
+    steamroom = {
+      url = "github:landaire/steamroom/main";
+      flake = false;
+    };
+
     # Remote execution backend for buck2 (see modules/buck2-remote-execution).
     # Deliberately not following our nixpkgs: it pins its own rust toolchain.
     nativelink.url = "github:TraceMachina/nativelink";
