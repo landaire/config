@@ -19,5 +19,10 @@
         receive.fsckObjects = true;
         transfer.fsckobjects = true;
       };
+
+      # Git reads this XDG path as its global excludes file.
+      xdg.config.files."git/ignore".text = ''
+        .omp/
+      '';
     };
 }
