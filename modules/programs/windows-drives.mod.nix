@@ -109,24 +109,46 @@
               {
                 mounted: $mounted
                 options: $options
+                vfs_options: $vfs_options
                 writable: ("rw" in $vfs_options)
                 masks_execute: ($options | any {|option| $option in ["fmask=0111" "fmask=111"] })
               }
             }
             let requires_remount = $mount_states | any {|state| ($write and not $state.writable) or not $state.masks_execute }
-            for state in ($mount_states | sort-by writable) {
-              assert-windows-mount-target $state.mounted.target $spec.uuid
-              if $requires_remount {
-                let access = if $write or $state.writable { "rw" } else { "ro" }
-                let preserved_options = $state.options | where {|option| $option not-in ["ro" "rw" "remount"] and not ($option | str starts-with "fmask=") }
-                let remount_options = ["remount" $access "fmask=0111"]
-                  | append $preserved_options
-                  | str join ","
-                ^sudo $mount -t ntfs3 -o $remount_options $"UUID=($spec.uuid)" $state.mounted.target
-                print $"($spec.letter | str uppercase): remounted ($access) at ($state.mounted.target)"
-              } else {
+            if not $requires_remount {
+              for state in $mount_states {
+                assert-windows-mount-target $state.mounted.target $spec.uuid
                 let access = if $state.writable { "read-write" } else { "read-only" }
                 print $"($spec.letter | str uppercase): is already mounted ($access) at ($state.mounted.target)"
+              }
+              return
+            }
+
+            let writable_states = $mount_states | where writable == true
+            let primary = if ($writable_states | is-not-empty) { $writable_states | first } else { $mount_states | first }
+            assert-windows-mount-target $primary.mounted.target $spec.uuid
+            let primary_access = if $write or $primary.writable { "rw" } else { "ro" }
+            let preserved_options = $primary.options | where {|option| $option not-in ["ro" "rw" "remount"] and not ($option | str starts-with "fmask=") }
+            let remount_options = ["remount" $primary_access "fmask=0111"]
+              | append $preserved_options
+              | str join ","
+            ^sudo $mount -t ntfs3 -o $remount_options $"UUID=($spec.uuid)" $primary.mounted.target
+            print $"($spec.letter | str uppercase): remounted ($primary_access) at ($primary.mounted.target)"
+
+            for state in $mount_states {
+              if $state.mounted.target != $primary.mounted.target {
+                assert-windows-mount-target $state.mounted.target $spec.uuid
+                if $write and not $state.writable {
+                  let preserved_vfs_options = $state.vfs_options | where {|option| $option not-in ["ro" "rw" "remount" "bind" "rbind"] }
+                  let vfs_remount_options = ["remount" "bind" "rw"]
+                    | append $preserved_vfs_options
+                    | str join ","
+                  ^sudo $mount -o $vfs_remount_options $state.mounted.target
+                  print $"($spec.letter | str uppercase): remounted rw at ($state.mounted.target)"
+                } else {
+                  let access = if $state.writable { "read-write" } else { "read-only" }
+                  print $"($spec.letter | str uppercase): is already mounted ($access) at ($state.mounted.target)"
+                }
               }
             }
             return
