@@ -197,13 +197,11 @@ Inside the container (`nixos-container root-login radicle`), `rad-system`
 runs `rad` as the node's user, for example `rad-system ls --all`.
 
 After the mirror succeeds, copy the four RIDs from `rad-system ls --all` into
-the Garden dashboard's **Add a repo** form. Garden's full connect address
-(`<node-id>@<host>:<port>`) must also be added to both
-`services.radicle.settings.preferredSeeds` and
-`services.radicle.settings.node.connect`, then deployed. The bare DID is enough
-for the private repository's identity allow list, but not enough to establish
-the direct connection Garden needs to discover and fetch a private repository.
-Confirm all four entries reach `synced` in the dashboard.
+the Garden dashboard's **Add a repo** form. The node is configured to prefer
+and persistently connect to
+`z6MkrwUPtWaeqYEAS4YzPfzc94UQQFBpPqVVEw2vHKun2Tgy@lander.radicle.garden:58038`.
+The bare DID is also in the private repository's identity allow list. Confirm
+all four dashboard entries reach `synced`.
 
 ## Spotify playlists on junction
 

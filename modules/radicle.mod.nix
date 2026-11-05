@@ -11,6 +11,7 @@
       alias = "junction";
       nodePort = 8776;
       httpdPort = 8080;
+      gardenAddress = "z6MkrwUPtWaeqYEAS4YzPfzc94UQQFBpPqVVEw2vHKun2Tgy@lander.radicle.garden:58038";
       secretsDir = "/var/lib/secrets/radicle";
       radHome = "/var/lib/radicle";
       # Outside radHome, which radicle-httpd also mounts. The node gets the
@@ -78,9 +79,11 @@
                 preferredSeeds = [
                   "z6MkrLMMsiPWUcNPHcRajuMi9mDfYckSoJyPwwnknocNYPm7@iris.radicle.network:8776"
                   "z6Mkmqogy2qEM2ummccUthFEaaHvyYmYBYh3dbe9W4ebScxo@rosa.radicle.network:8776"
+                  gardenAddress
                 ];
                 node = {
                   inherit alias;
+                  connect = [ gardenAddress ];
                   # The mirror creates explicit allow policies only for its
                   # repository list and removes stale policies after each run.
                   # Everything else remains blocked.
