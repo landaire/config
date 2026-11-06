@@ -25,6 +25,7 @@
               trackers = [ 242334789540118528 ];
             };
             review.channel = 1568209127552065657;
+            feedback.channel = 1568386911494742127;
           };
 
           twitch = {
@@ -43,6 +44,15 @@
               }
             ];
           };
+
+          # Reasoning tokens count against max_tokens.
+          agentSettings.llm = {
+            thinking = true;
+            max_tokens = 4096;
+          };
+
+          # Records answered questions for the thinking on/off comparison.
+          questionLog.until = "2026-11-10T02:11:25Z";
         };
 
         # Copied rather than symlinked into /run/agenix, which the container
