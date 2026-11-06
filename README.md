@@ -249,12 +249,13 @@ The service copies the bootstrap session into `/var/lib/spotify-playlist/session
 
 ## Poseidon on junction
 
-`modules/poseidon.mod.nix` runs [Poseidon](https://github.com/landaire/poseidon), the World of Warships Discord bot, on junction. `hosts/junction-system.nix` enables it. The module comes from the `poseidon` flake input and creates two NixOS containers:
+`modules/poseidon.mod.nix` runs [Poseidon](https://github.com/landaire/poseidon), the World of Warships Discord and Twitch bot, on junction. `hosts/junction-system.nix` enables it. The module comes from the `poseidon` flake input and creates three NixOS containers:
 
-- `poseidon` runs the bot. It has NAT'd internet access and keeps game data in `/var/lib/poseidon` on the host.
-- `poseidonllm` runs llama-server on the GPU. It has no internet access and accepts connections only from the bot container.
+- `poseidongw` runs the Discord and Twitch front ends. It holds the secrets and keeps its state in `/var/lib/poseidon-gateway` on the host.
+- `poseidonagt` answers questions for the gateway. It holds no secrets and keeps game data in `/var/lib/poseidon` on the host.
+- `poseidonllm` runs llama-server on the GPU. It has no internet access and accepts connections only from the agent.
 
-The bot token is `secrets/poseidon-discord-token.age`. Replace it with:
+The Discord bot token is `secrets/poseidon-discord-token.age` and the Twitch client secret is `secrets/poseidon-twitch-client-secret.age`. Replace one with:
 
 ```console
 cd secrets
@@ -277,19 +278,27 @@ extra-trusted-public-keys = cache.nixos-cuda.org:74DUi4Ye579gUqzH4ziL9IyiJBlDpMR
 
 Later deploys need only `mise run rebuild:junction`.
 
+After the first deploy, authorize the Twitch bot account once. Open the printed URL while logged in to Twitch as AdalBotSchneider and enter the code:
+
+```console
+ssh -t root@junction.tail8a811.ts.net 'nixos-container run poseidongw -- poseidon-authorize-twitch && systemctl -M poseidongw restart poseidon-gateway'
+```
+
+Copy the archive of old game scripts once:
+
+```console
+ssh -A root@junction.tail8a811.ts.net 'rsync -a richese.local:/var/mnt/e/poseidon/scripts-zips/ /var/lib/poseidon/scripts-archive/ && chown -R 2742:2742 /var/lib/poseidon/scripts-archive && systemctl -M poseidonagt restart poseidon-agent'
+```
+
 On junction, follow the services with:
 
 ```console
-journalctl -M poseidon -u poseidon-discord -f
+journalctl -M poseidongw -u poseidon-gateway -f
+journalctl -M poseidonagt -u poseidon-agent -f
 journalctl -M poseidonllm -u llama-server -f
 ```
 
-The bot downloads new game data each time it starts and restarts every day at 11:00 UTC. The decompiled game scripts are installed by hand, and the bot reads them when it restarts:
-
-```console
-scp scripts.zip root@junction.tail8a811.ts.net:/var/lib/poseidon/
-ssh root@junction.tail8a811.ts.net 'nixos-container run poseidon -- runuser -u poseidon -- poseidon --config /etc/poseidon/config.toml data install-scripts /var/lib/poseidon/scripts.zip && systemctl -M poseidon restart poseidon-discord'
-```
+The agent downloads new game data each time it starts and restarts every day at 11:00 UTC.
 
 ## Secrets
 

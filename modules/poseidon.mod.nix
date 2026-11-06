@@ -1,26 +1,60 @@
-# Poseidon, the World of Warships Discord bot, and its llama-server backend in
-# two NixOS containers. The module comes from the poseidon flake input; a host
-# opts in with `services.poseidon.enable`.
+# Poseidon, the World of Warships Discord and Twitch bot, in three NixOS
+# containers: the chat gateway, the agent, and llama-server. The module comes
+# from the poseidon flake input; a host opts in with `services.poseidon.enable`.
 #
-# The bot reads its Discord token from secrets/poseidon-discord-token.age.
+# The gateway reads the Discord token from secrets/poseidon-discord-token.age
+# and the Twitch client secret from secrets/poseidon-twitch-client-secret.age.
 { inputs, ... }:
 {
   flake.nixosModules.poseidon =
     { config, lib, ... }:
     let
+      # Mounted read-only into the gateway container.
       secretsDir = "/var/lib/secrets/poseidon";
     in
     {
       imports = [ inputs.poseidon.nixosModules.default ];
 
       config = lib.mkIf config.services.poseidon.enable {
-        services.poseidon.discordTokenFile = config.age.secrets.poseidon-discord-token.path;
+        services.poseidon = {
+          discord = {
+            tokenFile = config.age.secrets.poseidon-discord-token.path;
+            bugs = {
+              guild = 1184019275221053530;
+              channel = 1480105315461759147;
+              trackers = [ 242334789540118528 ];
+            };
+            review.channel = 1568209127552065657;
+          };
+
+          twitch = {
+            enable = true;
+            clientId = "msvy8jcrxpkpxk6fru0yrm0v8rg9yk";
+            clientSecretFile = config.age.secrets.poseidon-twitch-client-secret.path;
+            botLogin = "AdalBotSchneider";
+            channels = [
+              "g4nng"
+              "bfk_fer1yfe"
+              "trenlass"
+              "flamuu"
+              {
+                login = "landaire";
+                introduce = false;
+              }
+            ];
+          };
+        };
 
         # Copied rather than symlinked into /run/agenix, which the container
         # cannot see; the container bind-mounts the directory.
         age.secrets.poseidon-discord-token = {
           file = ../secrets/poseidon-discord-token.age;
           path = "${secretsDir}/discord-token";
+          symlink = false;
+        };
+        age.secrets.poseidon-twitch-client-secret = {
+          file = ../secrets/poseidon-twitch-client-secret.age;
+          path = "${secretsDir}/twitch-client-secret";
           symlink = false;
         };
 
