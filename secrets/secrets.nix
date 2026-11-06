@@ -12,6 +12,7 @@ let
   };
 in
   {
+    "poseidon-discord-token.age".publicKeys = keys.users ++ [keys.hosts.junction];
     "radicle-github-token.age".publicKeys = keys.users ++ [keys.hosts.junction];
     "radicle-landaire-contrib-token.age".publicKeys = keys.users ++ [keys.hosts.junction];
     "spotify-playlist-config.age".publicKeys = keys.users ++ [keys.hosts.junction];

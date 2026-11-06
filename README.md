@@ -247,6 +247,50 @@ ssh root@junction.tail8a811.ts.net 'systemctl stop spotify-playlist-sync; rm -f 
 
 The service copies the bootstrap session into `/var/lib/spotify-playlist/session.json` when that file is absent. Refreshed tokens and playlist management state remain in that private state directory. Remove the session file after deploying a replacement bootstrap secret.
 
+## Poseidon on junction
+
+`modules/poseidon.mod.nix` runs [Poseidon](https://github.com/landaire/poseidon), the World of Warships Discord bot, on junction. `hosts/junction-system.nix` enables it. The module comes from the `poseidon` flake input and creates two NixOS containers:
+
+- `poseidon` runs the bot. It has NAT'd internet access and keeps game data in `/var/lib/poseidon` on the host.
+- `poseidonllm` runs llama-server on the GPU. It has no internet access and accepts connections only from the bot container.
+
+The bot token is `secrets/poseidon-discord-token.age`. Replace it with:
+
+```console
+cd secrets
+cat /path/to/discord-token | nix run 'path:..#agenix' -- -e poseidon-discord-token.age
+```
+
+The poseidon repository is private. `modules/nix-github-access.mod.nix` gives Nix on junction read access to GitHub with the token in `secrets/radicle-github-token.age`. Activation writes it to the root-only `/run/nix/github-access-token.conf`, which `nix.conf` includes. The Mac fetches the input with the `gh` login instead. Update the lock with:
+
+```console
+NIX_CONFIG="access-tokens = github.com=$(gh auth token)" nix flake update poseidon
+```
+
+The first deploy that adds Poseidon cannot use the include yet, because the running system's `nix.conf` does not have it. Run `mise run rebuild:junction`, which copies the tree and fails to fetch the input. Then switch once with the token and the CUDA cache passed in the environment:
+
+```console
+ssh root@junction.tail8a811.ts.net 'NIX_CONFIG="access-tokens = github.com=$(cat /var/lib/secrets/radicle/github-token)
+extra-substituters = https://cache.nixos-cuda.org
+extra-trusted-public-keys = cache.nixos-cuda.org:74DUi4Ye579gUqzH4ziL9IyiJBlDpMRn9MBN8oNan9M=" nixos-rebuild switch --flake /root/config#junction'
+```
+
+Later deploys need only `mise run rebuild:junction`.
+
+On junction, follow the services with:
+
+```console
+journalctl -M poseidon -u poseidon-discord -f
+journalctl -M poseidonllm -u llama-server -f
+```
+
+The bot downloads new game data each time it starts and restarts every day at 11:00 UTC. The decompiled game scripts are installed by hand, and the bot reads them when it restarts:
+
+```console
+scp scripts.zip root@junction.tail8a811.ts.net:/var/lib/poseidon/
+ssh root@junction.tail8a811.ts.net 'nixos-container run poseidon -- runuser -u poseidon -- poseidon --config /etc/poseidon/config.toml data install-scripts /var/lib/poseidon/scripts.zip && systemctl -M poseidon restart poseidon-discord'
+```
+
 ## Secrets
 
 Secrets are [agenix](https://github.com/ryantm/agenix) files in `secrets/`,
