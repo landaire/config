@@ -45,6 +45,10 @@
             ];
           };
 
+          # Thinks only for rankings, recommendations, multi-subject questions
+          # and follow-ups that dispute an answer.
+          agentSettings.llm.thinking = "by_subject";
+
           # Records answered questions for the thinking on/off comparison.
           questionLog.until = "2026-11-10T02:11:25Z";
         };
