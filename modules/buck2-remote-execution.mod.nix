@@ -53,8 +53,18 @@
 
       settings = {
         stores = [
-          (fsStore "cas" (gib 200))
-          (fsStore "ac" (gib 4))
+          (fsStore "cas" (gib 800))
+          # The action cache only returns a result whose outputs are all still
+          # in the CAS. Without the check, a CAS eviction leaves action cache
+          # entries that point at missing blobs, and buck2 fails to download
+          # them instead of running the action.
+          {
+            name = "ac";
+            completeness_checking = {
+              backend.filesystem = (fsStore "ac" (gib 4)).filesystem;
+              cas_store.ref_store.name = "cas";
+            };
+          }
           {
             name = "worker";
             fast_slow = {
