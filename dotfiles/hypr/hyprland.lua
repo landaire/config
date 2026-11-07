@@ -137,6 +137,8 @@ hl.bind(mainMod .. " + F", hl.dsp.window.fullscreen({ mode = "fullscreen", actio
 hl.bind(mainMod .. " + V", hl.dsp.window.float({ action = "toggle" }))
 hl.bind(mainMod .. " + P", hl.dsp.window.pseudo())
 hl.bind(mainMod .. " + SHIFT + P", hl.dsp.layout("togglesplit"))
+hl.bind(mainMod .. " + R", hl.dsp.layout("movetoroot"))
+hl.bind(mainMod .. " + SHIFT + R", hl.dsp.layout("rotatesplit"))
 hl.bind(mainMod .. " + SHIFT + F1", function()
     setNativeMode()
     hl.dispatch(hl.dsp.focus({ monitor = "DP-2" }))

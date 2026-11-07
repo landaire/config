@@ -245,8 +245,12 @@ let
     const SRC = "alsa_input.usb-Shure_Inc_Shure_MV7-00.mono-fallback:capture_MONO"
     const DST = "vban-mic:send_MONO"
 
+    # pw-link -l ignores port arguments and lists every link, so match the
+    # DST port block and require SRC among its inputs.
     def is-on [] {
-      (^pw-link -l $DST | complete | get stdout) =~ "mono-fallback"
+      ^pw-link -l | complete | get stdout
+      | split row -r '\n(?=\S)'
+      | any {|b| (($b | lines | first) == $DST) and ($b | str contains $"|<- ($SRC)") }
     }
 
     def src-present [] {

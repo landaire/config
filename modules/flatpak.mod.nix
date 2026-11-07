@@ -11,7 +11,6 @@ let
     "org.speedcrunch.SpeedCrunch"
     "com.spotify.Client"
     "dev.zed.Zed"
-    "org.wezfurlong.wezterm"
     "org.kde.haruna"
     "org.rncbc.qpwgraph"
     "org.filezillaproject.Filezilla"
@@ -24,6 +23,7 @@ let
   remove = [
     "org.mozilla.firefox"
     "dev.lizardbyte.app.Sunshine"
+    "org.wezfurlong.wezterm"
   ];
 in
 {
