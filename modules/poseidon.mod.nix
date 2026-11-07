@@ -45,12 +45,6 @@
             ];
           };
 
-          # Reasoning tokens count against max_tokens.
-          agentSettings.llm = {
-            thinking = true;
-            max_tokens = 4096;
-          };
-
           # Records answered questions for the thinking on/off comparison.
           questionLog.until = "2026-11-10T02:11:25Z";
         };
