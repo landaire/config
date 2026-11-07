@@ -39,6 +39,7 @@
               "trenlass"
               "flamuu"
               "sepbtw"
+              "john_the_ruthless"
               {
                 login = "landaire";
                 introduce = false;
