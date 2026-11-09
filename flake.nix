@@ -40,13 +40,6 @@
     # Deliberately not following our nixpkgs: it pins its own rust toolchain.
     nativelink.url = "github:TraceMachina/nativelink";
 
-    # World of Warships Discord and Twitch bot (see modules/poseidon.mod.nix). The
-    # repository is private; hosts fetch it with the token from
-    # modules/nix-github-access.mod.nix. Deliberately not following our
-    # nixpkgs: its pin selects the CUDA llama-cpp build that
-    # cache.nixos-cuda.org serves.
-    poseidon.url = "github:landaire/poseidon";
-
     # Secrets encrypted in-repo to host SSH keys (see secrets/secrets.nix).
     agenix.url = "github:ryantm/agenix";
     agenix.inputs.nixpkgs.follows = "nixpkgs";

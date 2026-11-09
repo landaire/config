@@ -21,8 +21,6 @@ in {
   age.secrets.spotify-playlist-config.file = ../secrets/spotify-playlist-config.age;
   age.secrets.spotify-playlist-session.file = ../secrets/spotify-playlist-session.age;
 
-  services.poseidon.enable = true;
-
   hardware.graphics.enable = true;
   hardware.nvidia = {
     modesetting.enable = true;

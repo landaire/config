@@ -249,7 +249,7 @@ The service copies the bootstrap session into `/var/lib/spotify-playlist/session
 
 ## Poseidon on junction
 
-`modules/poseidon.mod.nix` runs [Poseidon](https://github.com/landaire/poseidon), the World of Warships Discord and Twitch bot, on junction. `hosts/junction-system.nix` enables it. The module comes from the `poseidon` flake input and creates three NixOS containers:
+`deploy/junction/poseidon.nix` runs [Poseidon](https://github.com/landaire/poseidon), the World of Warships Discord and Twitch bot, on junction. The deployment-only flake imports the private Poseidon input and creates three NixOS containers:
 
 - `poseidongw` runs the Discord and Twitch front ends. It holds the secrets and keeps its state in `/var/lib/poseidon-gateway` on the host.
 - `poseidonagt` answers questions for the gateway. It holds no secrets and keeps game data in `/var/lib/poseidon` on the host.
@@ -262,18 +262,21 @@ cd secrets
 cat /path/to/discord-token | nix run 'path:..#agenix' -- -e poseidon-discord-token.age
 ```
 
-The poseidon repository is private. `modules/nix-github-access.mod.nix` gives Nix on junction read access to GitHub with the token in `secrets/radicle-github-token.age`. Activation writes it to the root-only `/run/nix/github-access-token.conf`, which `nix.conf` includes. The Mac fetches the input with the `gh` login instead. Update the lock with:
+The Poseidon repository is private. Its input and lock file live under `deploy/junction`, outside the shared flake. Other hosts can update the root lock without access to Poseidon. Update only the Poseidon pin with:
 
 ```console
+cd deploy/junction
 NIX_CONFIG="access-tokens = github.com=$(gh auth token)" nix flake update poseidon
 ```
 
-The first deploy that adds Poseidon cannot use the include yet, because the running system's `nix.conf` does not have it. Run `mise run rebuild:junction`, which copies the tree and fails to fetch the input. Then switch once with the token and the CUDA cache passed in the environment:
+`mise run rebuild:junction` refreshes the deployment lock's `base` input from the shared lock before it copies the tree and switches Junction.
+
+`modules/nix-github-access.mod.nix` gives Nix on Junction read access to GitHub with the token in `secrets/radicle-github-token.age`. Activation writes it to the root-only `/run/nix/github-access-token.conf`, which `nix.conf` includes. When adding the module to a host that already has the Radicle GitHub secret, the first rebuild copies the tree but fails to fetch Poseidon because that include is not active yet. After that failure, switch once with the token and CUDA cache passed in the environment:
 
 ```console
 ssh root@junction.tail8a811.ts.net 'NIX_CONFIG="access-tokens = github.com=$(cat /var/lib/secrets/radicle/github-token)
 extra-substituters = https://cache.nixos-cuda.org
-extra-trusted-public-keys = cache.nixos-cuda.org:74DUi4Ye579gUqzH4ziL9IyiJBlDpMRn9MBN8oNan9M=" nixos-rebuild switch --flake /root/config#junction'
+extra-trusted-public-keys = cache.nixos-cuda.org:74DUi4Ye579gUqzH4ziL9IyiJBlDpMRn9MBN8oNan9M=" nixos-rebuild switch --flake "git+file:///root/config?dir=deploy/junction#junction"'
 ```
 
 Later deploys need only `mise run rebuild:junction`.
