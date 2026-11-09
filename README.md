@@ -135,9 +135,7 @@ Hyprland treats the Elgato 4K X as a mirror of `DP-2`, not as another workspace.
 
 Other UI apps are installed as user Flatpaks. Zed's Flatpak export is named `dev.zed.Zed`, so the Linux workstation tools profile provides a `zed` wrapper for terminal use. The workstation tools profile also installs [Steamroom](https://github.com/landaire/steamroom). The switch also uninstalls the Firefox system flatpak and the redundant Sunshine flatpak after its native replacement is available. Waydroid is removed and sshd and tailscaled are enabled in the image build. Hyprland screenshots use Grim and Slurp. Press `Super+Shift+S` to select a region and copy the screenshot to the clipboard. `Print` does the same if available, and `Shift+Print` copies the full screen. Plasma screenshots use Spectacle.
 
-The shared macOS and Linux workstation profile installs the Radicle CLI as
-`rad`. It installs the bundled node binaries but does not start a node service;
-use `rad auth` once per workstation and `rad node start` when needed.
+The shared macOS and Linux workstation profile installs the Radicle CLI as `rad`. Each workstation must have its own Radicle DID. Run `rad auth` once when adding a device and `rad node start` when needed. On macOS, `modules/radicle-identity.mod.nix` restores host-specific private and public keys from `secrets/radicle-identities/<host>.age` and `<host>.pub.age`. Both files are age-encrypted so the public configuration does not associate a device with its Radicle identity.
 
 On `richese`, run `mount-windows-drive E` from Nushell. The command accepts `C`, `D`, `E`, or `G` and uses each volume's stable UUID. New mounts are read-only under `/var/mnt`. Existing mounts keep their current path and access mode. Pass `--write` or `-w` to mount or remount read-write. Every mount uses `fmask=0111` so regular files do not receive execute bits. Run `unmount-windows-drive E` to unmount that volume from every current path. A remount preserves options reported by NTFS3. Options omitted from its mount table return to kernel defaults.
 
@@ -152,20 +150,14 @@ Not automated by the switch - install or use these as-is:
 
 ## Radicle on junction
 
-`modules/radicle.mod.nix` runs a Radicle seed node and radicle-httpd in the
-`radicle` NixOS container on junction. Only port 8080 (httpd) is forwarded from
-the host; the Radicle node initiates its own outbound sessions. An hourly timer
-runs `modules/radicle/mirror.nu`, which mirrors and seeds only this allow list:
+`modules/radicle.mod.nix` runs a Radicle seed node and radicle-httpd in the `radicle` NixOS container on junction. It forwards HTTP port 8080 and Radicle node port 8776. An hourly timer runs `modules/radicle/mirror.nu`, which mirrors and seeds only this allow list:
 
 - `landaire/noscope360`
 - `landaire/xenon-forge`
 - `landaire-contrib/buck2-rustc-bootstrap`
 - `landaire-contrib/llvm-project`
 
-Radicle project names use the full `owner/repository` slug. GitHub repositories
-with the same short name therefore remain distinguishable in `rad-system ls`
-and Garden. Their GitHub node IDs key separate local mirrors, and their RIDs
-remain distinct and unchanged when the display name is synchronized.
+Radicle project names replace the owner/repository slash with a dot because Radicle names cannot contain slashes. Repositories with the same short name under different GitHub owners therefore remain distinguishable in `rad-system ls` and Garden. Their GitHub node IDs key separate local mirrors, and their RIDs remain distinct and unchanged when the display name is synchronized.
 
 The last slug is the existing GitHub LLVM fork; there is no
 `landaire-contrib/llvm` repository. The node's default seeding policy is
@@ -173,23 +165,22 @@ The last slug is the existing GitHub LLVM fork; there is no
 repositories previously mirrored by the old account-wide job are no longer
 seeded.
 
-Repository visibility is synchronized from GitHub on every run. Public
-repositories are seeded directly. If an allow-listed GitHub repository is
-private, its Radicle identity allows the Garden DID before the local node seeds
-it. Radicle 1.x transport is neither encrypted nor authenticated; a peer can
-impersonate an allow-listed DID and fetch a private repository
-([disclosure](https://radicle.dev/2026/09/23/disclosure-of-vulnerability-in-network-protocol)).
-The risk remains until Radicle 2.0. `radicle-node` is permitted as an insecure
-package by its exact version; a version bump fails evaluation until the permit
-is reviewed.
+Repository visibility is synchronized from GitHub on every run. Public repositories are seeded directly. Private repository identities allow the DIDs listed in `secrets/radicle-private-repo-dids.age` before the local node seeds them. Edit that secret to grant a workstation access without publishing its DID in this repository.
 
-The node uses a static peer set: the Radicle-operated Iris and Rosa seeds plus
-the configured Garden node. Dynamic peer discovery cannot open sessions to
-other nodes, port 8776 is neither opened nor forwarded, and the node advertises
-no external address. Iris, Rosa, Garden, and GitHub still see the home's public
-source IP for connections made to them. Other Radicle peers can receive the
-node ID and public repository announcements through gossip, but not an
-advertised home address.
+Radicle 1.x transport is neither encrypted nor authenticated. A peer can impersonate an allow-listed DID and fetch a private repository ([disclosure](https://radicle.dev/2026/09/23/disclosure-of-vulnerability-in-network-protocol)). The risk remains until Radicle 2.0. `radicle-node` is permitted as an insecure package by its exact version. A version bump fails evaluation until the permit is reviewed.
+
+The node accepts up to 16 inbound sessions from the LAN and tailnet. Its own outbound sessions remain limited to the Radicle-operated Iris and Rosa seeds plus the configured Garden node. GitHub, those seeds, and direct peers see the home's public or tailnet address used for the connection.
+
+Personal macOS workstations receive named Radicle node profiles from the age-encrypted `secrets/radicle-nodes.json.age`. Nushell loads those profiles without storing node IDs in the shell configuration:
+
+```console
+rad node start
+rad-node connect junction
+rad-node inventory junction
+rad-node clone junction rad:<RID>
+```
+
+The clone command accepts Junction's older root-level signed refs because it is a trusted seed. Add another record to the encrypted JSON file to name another hosted node.
 
 The mirror uses separate fine-grained PATs because GitHub tokens are scoped to
 one resource owner. Both need Contents read-only access:
@@ -265,9 +256,10 @@ cat /path/to/discord-token | nix run 'path:..#agenix' -- -e poseidon-discord-tok
 The Poseidon repository is private. Its input and lock file live under `deploy/junction`, outside the shared flake. Other hosts can update the root lock without access to Poseidon. Update only the Poseidon pin with:
 
 ```console
-cd deploy/junction
-NIX_CONFIG="access-tokens = github.com=$(gh auth token)" nix flake update poseidon
+mise run update:poseidon
 ```
+
+The update task decrypts `secrets/radicle-github-token.age` with your age identity and gives the token to Nix through the process environment. It does not write the plaintext token to the repository or Nix store.
 
 `mise run rebuild:junction` refreshes the deployment lock's `base` input from the shared lock before it copies the tree and switches Junction.
 

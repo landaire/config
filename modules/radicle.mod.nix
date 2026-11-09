@@ -1,15 +1,15 @@
 # Radicle seed node in a NixOS container, with an hourly job that mirrors an
-# explicit GitHub repository allow list into it. Private repositories are
-# allow-listed for the configured Radicle Garden node (see radicle/mirror.nu).
+# explicit GitHub repository allow list into it.
 #
-# The mirror reads a GitHub token from secrets/radicle-github-token.age.
-# The node key is generated inside the container on first start.
+# The mirror reads GitHub tokens from age secrets. The Radicle node port is
+# reachable on the LAN and tailnet.
 {
   flake.nixosModules.radicle =
     { lib, ... }:
     let
       alias = "junction";
       httpdPort = 8080;
+      nodePort = 8776;
       gardenAddress = "z6MkrwUPtWaeqYEAS4YzPfzc94UQQFBpPqVVEw2vHKun2Tgy@lander.radicle.garden:58038";
       officialSeeds = [
         "z6MkrLMMsiPWUcNPHcRajuMi9mDfYckSoJyPwwnknocNYPm7@iris.radicle.network:8776"
@@ -35,7 +35,10 @@
               hostPort = port;
               protocol = "tcp";
             })
-            [ httpdPort ];
+            [
+              httpdPort
+              nodePort
+            ];
 
         bindMounts.secrets = {
           hostPath = secretsDir;
@@ -73,9 +76,8 @@
               enable = true;
               privateKey = "${keysDir}/radicle";
               publicKey = "${keysDir}/radicle.pub";
-              # The node only initiates sessions with the static trusted peer
-              # set and rejects non-local inbound sessions. Port 8776 is not
-              # opened or forwarded.
+              # Outbound sessions remain limited to trusted peers. Inbound
+              # sessions support direct clones from workstations.
               node.openFirewall = false;
               settings = {
                 preferredSeeds = trustedPeers;
@@ -83,7 +85,7 @@
                   inherit alias;
                   connect = trustedPeers;
                   externalAddresses = [ ];
-                  limits.connection.inbound = 0;
+                  limits.connection.inbound = 16;
                   peers.type = "static";
                   # The mirror creates explicit allow policies only for its
                   # repository list and removes stale policies after each run.
@@ -97,7 +99,10 @@
                 listenPort = httpdPort;
               };
             };
-            networking.firewall.allowedTCPPorts = [ httpdPort ];
+            networking.firewall.allowedTCPPorts = [
+              httpdPort
+              nodePort
+            ];
 
             # Unencrypted so the node and the mirror run unattended.
             systemd.services.radicle-keygen = {
@@ -150,6 +155,7 @@
                 LoadCredential = [
                   "github-token:/run/secrets/radicle/github-token"
                   "landaire-contrib-token:/run/secrets/radicle/landaire-contrib-token"
+                  "private-repo-dids:/run/secrets/radicle/private-repo-dids"
                 ];
                 BindReadOnlyPaths = [
                   "${cfg.configFile}:${radHome}/config.json"
@@ -196,6 +202,11 @@
         radicle-landaire-contrib-token = {
           file = ../secrets/radicle-landaire-contrib-token.age;
           path = "${secretsDir}/landaire-contrib-token";
+          symlink = false;
+        };
+        radicle-private-repo-dids = {
+          file = ../secrets/radicle-private-repo-dids.age;
+          path = "${secretsDir}/private-repo-dids";
           symlink = false;
         };
       };

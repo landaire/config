@@ -16,6 +16,13 @@ in
     "poseidon-twitch-client-secret.age".publicKeys = keys.users ++ [keys.hosts.junction];
     "radicle-github-token.age".publicKeys = keys.users ++ [keys.hosts.junction];
     "radicle-landaire-contrib-token.age".publicKeys = keys.users ++ [keys.hosts.junction];
+    "radicle-private-repo-dids.age".publicKeys = keys.users ++ [keys.hosts.junction];
+    "radicle-identities/caladan.age".publicKeys = keys.users ++ [keys.hosts.caladan];
+    "radicle-identities/caladan.pub.age".publicKeys = keys.users ++ [keys.hosts.caladan];
+    "radicle-nodes.json.age".publicKeys = keys.users ++ [
+      keys.hosts.caladan
+      keys.hosts.rossak
+    ];
     "spotify-playlist-config.age".publicKeys = keys.users ++ [keys.hosts.junction];
     "spotify-playlist-session.age".publicKeys = keys.users ++ [keys.hosts.junction];
   }

@@ -1,12 +1,9 @@
 # Mirrors an explicit GitHub repository allow list into the local Radicle node.
 # Runs as the radicle user with RAD_HOME pointing at the node's home.
 #
-# The Garden DID is allowed to fetch private repositories. Radicle 1.x
-# transport sends data in plaintext and lets a peer claim any Node ID,
-# including an allow-listed DID:
+# Private repository identities come from an age secret. Radicle 1.x transport
+# sends data in plaintext and lets a peer claim any allow-listed Node ID:
 # https://radicle.dev/2026/09/23/disclosure-of-vulnerability-in-network-protocol
-
-const garden_did = "did:key:z6MkrwUPtWaeqYEAS4YzPfzc94UQQFBpPqVVEw2vHKun2Tgy"
 const repository_slugs = [
   "landaire/noscope360"
   "landaire/xenon-forge"
@@ -40,9 +37,9 @@ def configured-seed-rids [] {
   | uniq
 }
 
-def mirror [repo: record, repos_dir: path] {
+def mirror [repo: record, repos_dir: path, private_repo_dids: list<string>] {
   let slug = $repo.nameWithOwner
-  let display_name = $slug
+  let display_name = $slug | str replace "/" "."
   let branch = $repo.defaultBranchRef.name
   # Radicle rejects descriptions over 255 bytes; GitHub allows 350 characters.
   let description = $repo.description | default "" | clip-bytes 255
@@ -110,18 +107,34 @@ def mirror [repo: record, repos_dir: path] {
     [--visibility $visibility]
   }
   let current_allow = $doc.visibility?.allow? | default []
-  let needs_garden = $visibility == "private" and $garden_did not-in $current_allow
+  let missing_allowed_dids = if $visibility == "private" {
+    $private_repo_dids | where {|did| $did not-in $current_allow}
+  } else {
+    []
+  }
+  let stale_allowed_dids = if $visibility == "private" {
+    $current_allow | where {|did| $did not-in $private_repo_dids}
+  } else {
+    []
+  }
   let update = $visibility_args ++ $payload_args
   if ($update | is-not-empty) {
     print $"($slug): updating identity: ($update | str join ' ')"
     ^rad id update --repo $rid --title "Synchronize with GitHub" --no-confirm --quiet ...$update
   }
 
-  if $needs_garden {
-    print $"($slug): allowing radicle.garden seed node"
+  for did in $missing_allowed_dids {
+    print $"($slug): allowing a private repository device"
     (^rad id update --repo $rid
-      --title "Add radicle.garden seed node to allow list"
-      --allow $garden_did --no-confirm --quiet)
+      --title "Add device to allow list"
+      --allow $did --no-confirm --quiet)
+  }
+
+  for did in $stale_allowed_dids {
+    print $"($slug): removing a private repository device"
+    (^rad id update --repo $rid
+      --title "Remove device from allow list"
+      --disallow $did --no-confirm --quiet)
   }
 
   # The node refuses to delete the old default branch until the new one has
@@ -141,6 +154,11 @@ def main [] {
   let credentials_dir = $env.CREDENTIALS_DIRECTORY
   let landaire_token = open --raw ($credentials_dir | path join github-token) | str trim
   let contrib_token = open --raw ($credentials_dir | path join landaire-contrib-token) | str trim
+  let private_repo_dids = open --raw ($credentials_dir | path join private-repo-dids)
+    | lines
+    | each {str trim}
+    | where {|did| $did | is-not-empty}
+    | uniq
   let repos_dir = $env.STATE_DIRECTORY | path join repos
   mkdir $repos_dir
 
@@ -158,7 +176,7 @@ def main [] {
         if $repo.isEmpty {
           error make {msg: "repository is empty"}
         }
-        {rid: (mirror $repo $repos_dir), failed: null}
+        {rid: (mirror $repo $repos_dir $private_repo_dids), failed: null}
       } catch {|err|
         print --stderr $"($slug): ($err.msg)"
         {rid: null, failed: $slug}
