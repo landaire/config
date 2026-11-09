@@ -150,7 +150,7 @@ Not automated by the switch - install or use these as-is:
 
 ## Radicle on junction
 
-`modules/radicle.mod.nix` runs a Radicle seed node and radicle-httpd in the `radicle` NixOS container on junction. It forwards HTTP port 8080 and Radicle node port 8776. An hourly timer runs `modules/radicle/mirror.nu`, which mirrors and seeds only this allow list:
+`modules/radicle.mod.nix` runs a Radicle seed node, Tor client, onion service, and radicle-httpd in the `radicle` NixOS container on junction. It forwards HTTP port 8080 and Radicle node port 8776 for LAN and tailnet clients. An hourly timer runs `modules/radicle/mirror.nu`, which mirrors and seeds only this allow list:
 
 - `landaire/noscope360`
 - `landaire/xenon-forge`
@@ -169,7 +169,15 @@ Repository visibility is synchronized from GitHub on every run. Public repositor
 
 Radicle 1.x transport is neither encrypted nor authenticated. A peer can impersonate an allow-listed DID and fetch a private repository ([disclosure](https://radicle.dev/2026/09/23/disclosure-of-vulnerability-in-network-protocol)). The risk remains until Radicle 2.0. `radicle-node` is permitted as an insecure package by its exact version. A version bump fails evaluation until the permit is reviewed.
 
-The node accepts up to 16 inbound sessions from the LAN and tailnet. Its own outbound sessions remain limited to the Radicle-operated Iris and Rosa seeds plus the configured Garden node. GitHub, those seeds, and direct peers see the home's public or tailnet address used for the connection.
+The node accepts up to 16 inbound sessions from the LAN, tailnet, and its Tor onion service. Every outbound Radicle session uses the container's Tor SOCKS proxy and remains limited to the Radicle-operated Iris and Rosa seeds plus the configured Garden node. A systemd IP address filter prevents the Radicle daemon from reaching public addresses directly if its proxy configuration changes. Garden and the public seeds see a Tor exit address. They still see Junction's public NID.
+
+Tor bootstraps through the Tor Project's Snowflake bridge because direct relay connections may be blocked. Snowflake's broker and temporary proxy can observe Junction's network address. Radicle peers and Garden see only the Tor exit address.
+
+The onion hostname is generated and retained by Tor. Read it on junction after deployment:
+
+```console
+nixos-container run radicle -- cat /var/lib/tor/onion/radicle/hostname
+```
 
 Personal macOS workstations receive named Radicle node profiles from the age-encrypted `secrets/radicle-nodes.json.age`. Nushell loads those profiles without storing node IDs in the shell configuration:
 
@@ -181,6 +189,8 @@ rad-node clone junction rad:<RID>
 ```
 
 The clone command accepts Junction's older root-level signed refs because it is a trusted seed. Add another record to the encrypted JSON file to name another hosted node.
+
+The GitHub mirror job is not routed through Tor. GitHub sees Junction's public address. Keeping it direct avoids Tor-exit authentication challenges and does not create a direct network path for the separately sandboxed Radicle daemon.
 
 The mirror uses separate fine-grained PATs because GitHub tokens are scoped to
 one resource owner. Both need Contents read-only access:

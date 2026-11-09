@@ -1,8 +1,8 @@
 # Radicle seed node in a NixOS container, with an hourly job that mirrors an
 # explicit GitHub repository allow list into it.
 #
-# The mirror reads GitHub tokens from age secrets. The Radicle node port is
-# reachable on the LAN and tailnet.
+# The Radicle node port is reachable on the LAN, tailnet, and as an onion
+# service. Radicle's public outbound traffic is restricted to Tor.
 {
   flake.nixosModules.radicle =
     { lib, ... }:
@@ -76,14 +76,16 @@
               enable = true;
               privateKey = "${keysDir}/radicle";
               publicKey = "${keysDir}/radicle.pub";
-              # Outbound sessions remain limited to trusted peers. Inbound
-              # sessions support direct clones from workstations.
+              # Outbound Radicle sessions use Tor and remain limited to trusted
+              # peers. Inbound sessions support direct clones from workstations.
               node.openFirewall = false;
               settings = {
                 preferredSeeds = trustedPeers;
                 node = {
                   inherit alias;
                   connect = trustedPeers;
+                  proxy = "127.0.0.1:9050";
+                  onion.mode = "forward";
                   externalAddresses = [ ];
                   limits.connection.inbound = 16;
                   peers.type = "static";
@@ -99,6 +101,60 @@
                 listenPort = httpdPort;
               };
             };
+
+            services.tor = {
+              enable = true;
+              client.enable = true;
+              settings = {
+                UseBridges = true;
+                ClientTransportPlugin = "snowflake exec ${pkgs.snowflake}/bin/client";
+                Bridge = [
+                  "snowflake 192.0.2.3:80 2B280B23E1107BB62ABFC40DDCC8824814F80A72 fingerprint=2B280B23E1107BB62ABFC40DDCC8824814F80A72 url=https://1098762253.rsc.cdn77.org front=www.phpmyadmin.net,cdn.zk.mk ice=stun:stun.antisip.com:3478,stun:stun.epygi.com:3478,stun:stun.uls.co.za:3478,stun:stun.voipgate.com:3478,stun:stun.mixvoip.com:3478,stun:stun.nextcloud.com:3478,stun:stun.bethesda.net:3478,stun:stun.nextcloud.com:443 utls-imitate=hellorandomizedalpn"
+                ];
+              };
+              relay.onionServices.radicle = {
+                version = 3;
+                map = [
+                  {
+                    port = nodePort;
+                    target = {
+                      addr = "127.0.0.1";
+                      port = nodePort;
+                    };
+                  }
+                ];
+              };
+            };
+
+            # The proxy is the only public egress path available to the node.
+            # Private and tailnet ranges remain available for forwarded
+            # workstation sessions.
+            systemd.services.radicle-node = {
+              wants = [ "tor.service" ];
+              after = [ "tor.service" ];
+              serviceConfig = {
+                IPAddressDeny = "any";
+                IPAddressAllow = [
+                  "127.0.0.0/8"
+                  "::1/128"
+                  "10.0.0.0/8"
+                  "100.64.0.0/10"
+                  "172.16.0.0/12"
+                  "192.168.0.0/16"
+                  "fc00::/7"
+                  "fe80::/10"
+                ];
+              };
+            };
+
+            assertions = [
+              {
+                assertion =
+                  cfg.settings.node.proxy == "127.0.0.1:9050"
+                  && cfg.settings.node.onion.mode == "forward";
+                message = "The Junction Radicle node must use the local Tor proxy.";
+              }
+            ];
             networking.firewall.allowedTCPPorts = [
               httpdPort
               nodePort
