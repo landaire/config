@@ -51,6 +51,7 @@
 
 - Generally we'll use `buck2` for first-party projects (Rust, C++, C). If starting a new project and you aren't sure, ask.
 - When using `buck2`, it should drive as much as it can.
+- When an application uses `buck2`, use `buck2` for everything. Tests, formatting, building, running, etc., should all be `buck2`-first.
 
 ### Heavy jobs
 
