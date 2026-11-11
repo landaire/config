@@ -12,6 +12,7 @@
         theme = "dark_plus";
 
         editor.rulers = [ 100 ];
+        editor.cursor-shape.insert = "bar";
         editor.lsp.display-inlay-hints = true;
         editor.end-of-line-diagnostics = "hint";
         editor.inline-diagnostics.cursor-line = "warning";
