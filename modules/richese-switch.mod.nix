@@ -63,6 +63,11 @@
             try { ^sudo firewall-cmd --reload } catch { }
           }
 
+          print "== user services at boot =="
+          # Lingering starts the user manager at boot, so user services such as
+          # tern-remote run without a login.
+          ^sudo loginctl enable-linger $env.USER
+
           print "provision done. If tailscale is not up yet, run: tailscale up"
         '';
 
@@ -83,6 +88,10 @@
             mkdir ($current | path dirname)
             ^($smfh) diff $manifest_file $current --fallback
             ^($smfh) activate $manifest_file
+            # Load changed user units and start newly wanted ones. Non-fatal:
+            # there may be no user manager (e.g. a bootstrap run over sudo).
+            do { ^systemctl --user daemon-reload } | complete | ignore
+            do { ^systemctl --user start default.target } | complete | ignore
             cp --force $manifest_file $current
             print "== packages (nix profile) =="
             # Installing by store path cannot upgrade in place and accumulates

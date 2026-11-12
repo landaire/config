@@ -112,11 +112,13 @@ Day-to-day:  nix run .#richese-switch            (full)
 `richese-switch` takes an optional scope flag:
 
 - `--all` (default): home + apps + system, in order.
-- `--home`: hjem standalone switch (links dotfiles/config) plus `nix profile`
-  install of the pinned tools env. Fast, no sudo.
+- `--home`: hjem standalone switch (links dotfiles/config, reloads and starts
+  user services) plus `nix profile` install of the pinned tools env. Fast, no
+  sudo.
 - `--apps`: syncs the declared Flatpak set.
 - `--system`: host config not baked into the image - writes Helium's managed
-  policies and opens the ssh firewall port. Needs sudo.
+  policies, opens the ssh firewall port, and enables lingering so user
+  services start at boot. Needs sudo.
 
 The switch bakes in the pinned hjem CLI, tools env, flatpak lists, and Helium
 policy, so a first run only needs Nix installed beforehand. It makes no

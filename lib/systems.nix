@@ -11,7 +11,7 @@ let
   # Bazzite and manages its own shell startup files).
   nixosOnlyHome = [ "shell-env-nixos" ];
   # Home modules that only apply to the standalone richese workstation.
-  richeseOnlyHome = [ "windows-drives" "build-disk" ];
+  richeseOnlyHome = [ "windows-drives" "build-disk" "tern-remote" ];
   # Home modules that assume a graphical session, dropped on headless hosts.
   # `apps` goes too: NixOS installs the same lists via systemPackages.
   desktopOnlyHome = [ "helium-linux" "apps" "audio" "zed" "resource-limits" "hyprland" ];
