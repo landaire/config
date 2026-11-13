@@ -541,11 +541,11 @@
         "wowsdeob": "wowsdeob"
       },
       "locked": {
-        "lastModified": 1794604303,
-        "narHash": "sha256-mFRjsZDzXS/nlvAC/ibFQqLxNxZ2cU0SzVg9KDhU/60=",
+        "lastModified": 1794605728,
+        "narHash": "sha256-JXOYqKB40x75E9rCAICHnZOE0o69jljYBUf1nxFykwg=",
         "owner": "landaire",
         "repo": "poseidon",
-        "rev": "a16b24d922b52cf00d2f592bcc4263554b4b0638",
+        "rev": "48aedb3c59f5b623052f365ef6498d4ad1a90c18",
         "type": "github"
       },
       "original": {
