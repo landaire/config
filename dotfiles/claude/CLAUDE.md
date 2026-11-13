@@ -69,6 +69,7 @@
 - Say why something exists when it isn't obvious.
 - Link external tools and projects the first time they appear.
 - Do not hard-wrap prose. Write one line per paragraph.
+- Use American English only. No "Colour" or "Favour".
 
 ## Commit Style
 
