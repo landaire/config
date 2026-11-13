@@ -126,6 +126,10 @@ hl.gesture({
     action = "workspace",
 })
 
+-- Portal file choosers have no parent window, so they tile. A narrow tile
+-- clips the header bar and hides the Save button.
+hl.window_rule({ match = { class = "^xdg-desktop-portal-gtk$" }, float = true })
+
 hl.bind(mainMod .. " + RETURN", hl.dsp.exec_cmd(terminal))
 hl.bind(mainMod .. " + B", hl.dsp.exec_cmd(browser))
 hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(fileManager))
