@@ -35,6 +35,7 @@ in
         "flamuu"
         "sepbtw"
         "john_the_ruthless"
+        "pyrrhuloxiaa"
         {
           login = "landaire";
           introduce = false;
