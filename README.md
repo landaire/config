@@ -86,8 +86,9 @@ mise run rebuild            # list targets
 
 Each task runs `sudo nix run 'nix-darwin/master#darwin-rebuild' -- switch --flake 'path:.#<host>'`.
 
-System-level activation (writing `/Library/Managed Preferences` for Helium,
-shadow-xcode symlinks, Homebrew) runs via `system.activationScripts.postActivation.text`.
+System-level activation (shadow-xcode symlinks, Homebrew) runs via `system.activationScripts.postActivation.text`.
+
+Helium's policy ships as a configuration profile. When it changes, activation opens it and you approve it in System Settings > General > Device Management.
 
 ## richese (Bazzite / Linux)
 
