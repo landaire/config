@@ -117,6 +117,9 @@
   # PASSWORDS
   extensions.bitwarden.id = "nngceckbapebfimnlniiiahkandclblb";
 
+  # ASSISTANTS
+  extensions.claude.id = "fcoeoabgfenejglbffodgkkbkcdhcgfn";
+
   policy = {
     # EXTENSIONS
     ExtensionInstallBlocklist = singleton "*";
