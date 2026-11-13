@@ -326,11 +326,11 @@ passphrase. After changing recipients, run
   is removed on switch.
 - `theme.isDark` / `theme.cornerRadius` (from `options/theme.mod.nix`) drive the
   difftastic background and jujutsu graph style.
-- Berkeley Mono is copied into `~/Library/Fonts` on each darwin host that is a
-  recipient of `secrets/fonts/*.age` (`fontRecipients` in
-  `secrets/secrets.nix`). To add a host, put its
-  `/etc/ssh/ssh_host_ed25519_key.pub` in `keys.nix`, add it to
-  `fontRecipients`, and rekey.
+- Berkeley Mono is installed on every host whose key is in `keys.hosts`
+  except junction (`fontRecipients` in `secrets/secrets.nix`). darwin hosts
+  get it in `~/Library/Fonts` on switch. richese gets it in
+  `~/.local/share/fonts` from `richese-switch --system`. To add a host, put its
+  `/etc/ssh/ssh_host_ed25519_key.pub` in `keys.nix` and rekey.
 
 [hjem]: https://github.com/feel-co/hjem
 [hjem-rum]: https://github.com/snugnug/hjem-rum

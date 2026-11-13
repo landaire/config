@@ -4,7 +4,9 @@
     { system, ... }:
     lib.optionalAttrs (system == "x86_64-linux") (
       let
-        inherit (lib.strings) toJSON;
+        inherit (lib.attrsets) attrNames;
+        inherit (lib.lists) elem filter;
+        inherit (lib.strings) hasPrefix removePrefix removeSuffix toJSON;
 
         # No shared perSystem `pkgs` is wired up yet in this flake, so import locally.
         pkgs = import inputs.nixpkgs { inherit system; };
@@ -35,6 +37,18 @@
         watchmanJson = pkgs.writeText "watchman.json" (toJSON {
           ignore_dirs = [ "buck-out" ];
         });
+
+        # The fonts/ secrets encrypted to this host key, as in darwinModules.fonts.
+        keys = import ../keys.nix;
+        secretRules = import ../secrets/secrets.nix;
+        fonts =
+          attrNames secretRules
+          |> filter (name: hasPrefix "fonts/" name && elem keys.hosts.richese secretRules.${name}.publicKeys)
+          |> map (secret: {
+            name = secret |> removePrefix "fonts/" |> removeSuffix ".age";
+            file = "${../secrets + "/${secret}"}";
+          });
+        fontsJson = pkgs.writeText "fonts.json" (toJSON fonts);
 
         provision = pkgs.writers.writeNuBin "richese-provision" ''
           # Packages that need OS integration (Helium, Sunshine, tailscale,
@@ -67,6 +81,21 @@
           # Lingering starts the user manager at boot, so user services such as
           # tern-remote run without a login.
           ^sudo loginctl enable-linger $env.USER
+
+          print "== fonts =="
+          # Only root can read the host key that decrypts the font secrets.
+          let data_home = if ($env.XDG_DATA_HOME? | is-empty) {
+            $env.HOME | path join ".local/share"
+          } else {
+            $env.XDG_DATA_HOME
+          }
+          let font_dir = ($data_home | path join "fonts")
+          mkdir $font_dir
+          for font in (open ${fontsJson}) {
+            let data = (^sudo ${pkgs.age}/bin/age --decrypt --identity /etc/ssh/ssh_host_ed25519_key $font.file)
+            $data | save --force --raw ($font_dir | path join $font.name)
+          }
+          ^fc-cache $font_dir
 
           print "provision done. If tailscale is not up yet, run: tailscale up"
         '';

@@ -3,9 +3,9 @@
 let
   keys = import ../keys.nix;
 
-  # Berkeley Mono is licensed per person. Hosts listed here install it; see
-  # modules/fonts.mod.nix.
-  fontRecipients = keys.users ++ [keys.hosts.rossak];
+  # Berkeley Mono is licensed per person. Every host except junction installs it;
+  # see modules/fonts.mod.nix and modules/richese-switch.mod.nix.
+  fontRecipients = keys.users ++ builtins.attrValues (removeAttrs keys.hosts ["junction"]);
   font = name: {
     name = "fonts/${name}.age";
     value.publicKeys = fontRecipients;
