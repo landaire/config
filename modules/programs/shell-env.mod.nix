@@ -2,8 +2,8 @@
   # COMMON: env + aliases wanted on every host (nushell is the interactive shell).
   flake.homeModules.shell-env = {
     environment.sessionVariables = {
-      EDITOR = "nvim";
-      VISUAL = "nvim";
+      EDITOR = "hx";
+      VISUAL = "hx";
       DOTNET_CLI_TELEMETRY_OPTOUT = "1";
     };
 

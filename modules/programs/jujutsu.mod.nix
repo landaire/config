@@ -25,7 +25,7 @@
         ui.default-command = "log";
         ui.conflict-marker-style = "snapshot";
         ui.graph.style = if config.theme.cornerRadius > 0 then "curved" else "square";
-        ui.editor = "nvim";
+        ui.editor = "hx";
 
         aliases.".." = [ "edit" "@-" ];
         aliases.",," = [ "edit" "@+" ];
