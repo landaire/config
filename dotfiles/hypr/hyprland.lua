@@ -130,6 +130,42 @@ hl.gesture({
 -- clips the header bar and hides the Save button.
 hl.window_rule({ match = { class = "^xdg-desktop-portal-gtk$" }, float = true })
 
+-- Games go to workspace 10, so a fullscreen game never covers the desktop
+-- it was launched from. A window counts as a game when it declares the
+-- "game" content type, is a Proton or Steam game (steam_app_<id>, which
+-- includes World of Warships as steam_app_552990), or is gamescope.
+-- Ordinary fullscreen windows (browsers, video players) stay put.
+local gameWorkspace = "10"
+
+local function isGame(w)
+    if w.content_type == "game" then
+        return true
+    end
+    local class = w.class or ""
+    return class:match("^steam_app_%d+$") ~= nil or class == "gamescope"
+end
+
+local function moveGameToItsWorkspace(w)
+    if not isGame(w) then
+        return
+    end
+    if w.workspace and tostring(w.workspace.id) == gameWorkspace then
+        return
+    end
+    local address = w.address
+    if not address:match("^0x") then
+        address = "0x" .. address
+    end
+    hl.dispatch(hl.dsp.window.move({ workspace = gameWorkspace, window = "address:" .. address }))
+end
+
+hl.on("window.open", moveGameToItsWorkspace)
+hl.on("window.fullscreen", function(w)
+    if w.fullscreen ~= 0 then
+        moveGameToItsWorkspace(w)
+    end
+end)
+
 hl.bind(mainMod .. " + RETURN", hl.dsp.exec_cmd(terminal))
 hl.bind(mainMod .. " + B", hl.dsp.exec_cmd(browser))
 hl.bind(mainMod .. " + E", hl.dsp.exec_cmd(fileManager))
