@@ -541,11 +541,11 @@
         "wowsdeob": "wowsdeob"
       },
       "locked": {
-        "lastModified": 1794854948,
-        "narHash": "sha256-/6LPO8Bh7BMlGBrSPRI/YEEJnJItSVJN/FazvqJ6Gd4=",
+        "lastModified": 1794870985,
+        "narHash": "sha256-y/k02eMcrNQLe2R3NsJD4Hw7BFzayiiK7x8N+MmPDnE=",
         "owner": "landaire",
         "repo": "poseidon",
-        "rev": "08983109828285091c4ad558b155c39500b91bda",
+        "rev": "975c55a4cafc4705cc95e4558989c31a2bceed79",
         "type": "github"
       },
       "original": {
@@ -612,11 +612,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1793870170,
-        "narHash": "sha256-0psEeQjs1g9oWQ6eVVGlCom+X3/uHyr6jSMyHVU57u8=",
+        "lastModified": 1794820811,
+        "narHash": "sha256-z43rmhOmnCG4gN2EcSm4tzHUSRg7DG5SaGscYreafzg=",
         "owner": "oxalica",
         "repo": "rust-overlay",
-        "rev": "19e0e6c951a7a8a7d3232c64e58d26b89df44c60",
+        "rev": "2ff7d39b901d79ee26d26f9fa32f90511eecaa0e",
         "type": "github"
       },
       "original": {
