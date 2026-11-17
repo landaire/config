@@ -52,6 +52,13 @@
       # YouTube shorts -> watch (main_frame only; cannot match /embed/)
       ''||youtube.com/shorts/$document,uritransform=/^https:\/\/(?:www\.|m\.)?youtube\.com\/shorts\/([^\/?#]+)/https:\/\/www.youtube.com\/watch?v=$1/''
 
+      # YouTube and Twitch embeds: load directly instead of the click2load placeholder,
+      # and override Privacy Essentials' third-party Twitch block.
+      ''@@||youtube.com/embed/$frame''
+      ''@@||youtube-nocookie.com/embed/$frame''
+      ''@@||twitch.tv^$frame''
+      ''@@||embed.twitch.tv^$script''
+
       # Reddit: exempt these paths from the old-reddit transform
       ''@@||reddit.com/media$uritransform''
       ''@@||reddit.com/mod$uritransform''
