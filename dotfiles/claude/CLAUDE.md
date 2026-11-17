@@ -79,4 +79,4 @@
 
 ### Review
 
-- At the end of each milestone, run an adversarial code review with a fresh subagent before committing.
+- At the end, run an adversarial code review with a fresh subagent before committing.
