@@ -60,6 +60,7 @@ in
     [
       steamroom
       pkgs.radicle-node
+      pkgs.hcloud
       inputs.hxy.packages.${system}.default
     ]
     ++ pkgs.lib.optionals pkgs.stdenv.hostPlatform.isLinux [ zed ];
